@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
 
 class Simulation:
     def __init__(self, states, traced_states, population, quar_period): 
