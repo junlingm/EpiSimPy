@@ -25,7 +25,7 @@ class Total(Logger):
             self.value += 1
 
 
-class class_Total(Logger):
+class ClassTotal(Logger):
     def __init__(self, name, initial, state):
         super().__init__(name, initial)
         self.state = state

@@ -46,11 +46,10 @@ SIR.define(Contact(from_state="S", to_state="E", contact_state="I", contact_quar
 
 SIR.define(Total("Eu", 20, "E", False))  # E unquarantined
 SIR.define(Total("Eq", 0, "E", True))  # E quarantined
-SIR.define(class_Total("T", 0, "T"))
+SIR.define(ClassTotal("T", 0, "T"))
 data = SIR.run(list(range(100)))
 
 print("time: ", data["time"])
 print("E unquarantined: ", data["Eu"])
 print("E quarantined: ", data["Eq"])
 print("Tested: ", data["T"])
-

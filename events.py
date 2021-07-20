@@ -15,5 +15,3 @@ class TraceEvent:
     def __init__(self, person, contact):
         self.person = person
         self.contact = contact
-    
-
