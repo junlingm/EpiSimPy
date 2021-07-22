@@ -4,7 +4,8 @@ import numpy as np
 
 
 class Agent:
-    def __init__(self, initial_state, number=None, neighbours=None, quarantined=False, last_contacts=None):
+    def __init__(self, initial_state, number=None, neighbours=None,
+                 quarantined=False, tested=False, last_contacts=None):
         if neighbours is None:
             neighbours = []
         self.state = initial_state
@@ -12,6 +13,7 @@ class Agent:
         self.duration = None  # this is duration of the infectious stage
         self.neighbours = neighbours
         self.quarantined = quarantined
+        self.tested = tested
         self.last_contacts = last_contacts  # for the purpose of contact tracing; stores the last time for each contact
 
     def add_neighbour(self, nbr):

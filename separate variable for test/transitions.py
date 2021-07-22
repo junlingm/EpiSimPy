@@ -34,3 +34,10 @@ class QuarTrans(Transition):
         super().__init__(from_state, from_state, None)
         self.from_quar = from_quar
         self.to_quar = to_quar
+
+
+class TestTrans(Transition):
+    def __init__(self, from_state, waiting_time, to_test=True):
+        super().__init__(from_state, from_state, waiting_time)
+        self.to_test = to_test
+# assumes that the test rate is the same from quarantined and unquarantined
