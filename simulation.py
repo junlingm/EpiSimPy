@@ -70,7 +70,7 @@ class Simulation:
                                                     contacter=agent), e['time'] + self.time)
 
             if agent.state in self.traced_states:  # if the person joined a traced state
-                trc = self.population.trace(agent, self.time, self.quar_period)
+                trc = self.population.trace(agent)
                 while True:
                     try:
                         e = next(trc)
@@ -121,7 +121,8 @@ class Simulation:
                 contacter = next_event.event.contacter
                 if (person.state, contacter.state, contacter.quarantined) in self.contact_trans:
                     transition = self.contact_trans[person.state, contacter.state, contacter.quarantined]
-                    contacter.last_contacts[person.number] = next_event.value
+                    if person.number not in contacter.last_contacts:
+                        contacter.last_contacts.append(person.number)
                     if transition.valid():
 
                         # this comes before the state is changed

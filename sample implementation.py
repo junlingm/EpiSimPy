@@ -8,8 +8,8 @@ def gen(i):
     li = [i for i in range(100)]
     li.remove(i)
     if i < 20:
-        return Agent("E", number=i, neighbours=li, quarantined=False, last_contacts=[None for _ in range(100)])
-    return Agent("S", number=i, neighbours=li, quarantined=False, last_contacts=[None for _ in range(100)])
+        return Agent("E", number=i, neighbours=li, quarantined=False)
+    return Agent("S", number=i, neighbours=li, quarantined=False)
 
 
 per_capita_contact_rate = 10
@@ -35,8 +35,8 @@ SIR.define(InfTrans(from_state="I", to_state="R",
 SIR.define(InfTrans(from_state="I", to_state="T",
                     waiting_time=lambda: np.random.exponential(1 / 4)))
 
-SIR.define(Contact(from_state="S", to_state="E", contact_state="E", contact_quar=False, chance=0.1))
-SIR.define(Contact(from_state="S", to_state="E", contact_state="E", contact_quar=True, chance=0.01))
+# SIR.define(Contact(from_state="S", to_state="E", contact_state="E", contact_quar=False, chance=0.1))
+# SIR.define(Contact(from_state="S", to_state="E", contact_state="E", contact_quar=True, chance=0.01))
 SIR.define(Contact(from_state="S", to_state="E", contact_state="A", contact_quar=False, chance=0.2))
 SIR.define(Contact(from_state="S", to_state="E", contact_state="A", contact_quar=True, chance=0.02))
 SIR.define(Contact(from_state="S", to_state="E", contact_state="P", contact_quar=False, chance=0.6))
