@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Agent:
-    def __init__(self, initial_state, number=None, neighbours=None, quarantined=False):
+    def __init__(self, initial_state, number=None, neighbours=None, quarantined=False, last_contacts=None):
         if neighbours is None:
             neighbours = []
         self.state = initial_state
@@ -12,6 +12,7 @@ class Agent:
         self.duration = None  # this is duration of the infectious stage
         self.neighbours = neighbours
         self.quarantined = quarantined
+        self.last_contacts = last_contacts  # for the purpose of contact tracing; stores the last time for each contact
 
     def add_neighbour(self, nbr):
         self.neighbours.append(nbr)
@@ -37,13 +38,11 @@ class Population:
             contact = random.sample(agent.neighbours, 1)[0]
             yield {"contact": contact, "time": time}
 
-    def trace(self, agent):
-        remaining = agent.neighbours
-        while bool(remaining):
-            time = np.random.exponential(1 / self.trace_rate)
-            contact = remaining[0]
-            remaining.pop(0)
-            yield {"contact": contact, "time": time}
+    def trace(self, agent, time, quar_time):
+        for person in range(len(agent.last_contacts)):
+            if agent.last_contacts[person] is not None and time - agent.last_contacts[person] < quar_time:
+                time = np.random.exponential(1 / self.trace_rate)
+                yield {"contact": person, "time": time}
 
     def reset(self):
         for i in range(self.size):

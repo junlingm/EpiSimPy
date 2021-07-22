@@ -19,7 +19,7 @@ class Simulation:
         for state in self.states:
             self.infection_trans[state] = []
 
-        # current time 
+        # current time
         self.time = None
         # the events organized in the binary search tree
         self.events = BinarySearchTree()
@@ -70,7 +70,7 @@ class Simulation:
                                                     contacter=agent), e['time'] + self.time)
 
             if agent.state in self.traced_states:  # if the person joined a traced state
-                trc = self.population.trace(agent)
+                trc = self.population.trace(agent, self.time, self.quar_period)
                 while True:
                     try:
                         e = next(trc)
@@ -121,6 +121,7 @@ class Simulation:
                 contacter = next_event.event.contacter
                 if (person.state, contacter.state, contacter.quarantined) in self.contact_trans:
                     transition = self.contact_trans[person.state, contacter.state, contacter.quarantined]
+                    contacter.last_contacts[person.number] = next_event.value
                     if transition.valid():
 
                         # this comes before the state is changed

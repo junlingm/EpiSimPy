@@ -8,8 +8,8 @@ def gen(i):
     li = [i for i in range(100)]
     li.remove(i)
     if i < 20:
-        return Agent("E", number=i, neighbours=li, quarantined=False)
-    return Agent("S", number=i, neighbours=li, quarantined=False)
+        return Agent("E", number=i, neighbours=li, quarantined=False, last_contacts=[None for _ in range(100)])
+    return Agent("S", number=i, neighbours=li, quarantined=False, last_contacts=[None for _ in range(100)])
 
 
 per_capita_contact_rate = 10
