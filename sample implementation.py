@@ -2,19 +2,22 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
+from networks import *
 
 
 def gen(i):
     li = [i for i in range(100)]
     li.remove(i)
     if i < 20:
-        return Agent("E", number=i, neighbours=li, quarantined=False)
-    return Agent("S", number=i, neighbours=li, quarantined=False)
+        return Agent("E", number=i)
+    return Agent("S", number=i)
 
+
+network = DegreeDistribution(100, lambda: random.randint(1, 20))
 
 per_capita_contact_rate = 10
 trace_rate = 10
-population = Population(100, gen, per_capita_contact_rate, trace_rate)
+population = Population(100, gen, network.network, per_capita_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R", "T"]
 traced_states = ["T"]

@@ -1,4 +1,3 @@
-
 import random
 import numpy as np
 
@@ -22,11 +21,13 @@ class Agent:
 
 
 class Population:
-    def __init__(self, size, generator, per_capita_contact_rate, trace_rate):
+    def __init__(self, size, generator, network, per_capita_contact_rate, trace_rate):
         self.size = size
         self.agents = [None] * size
+        self.network = network  # a list, not a class; eg. [[1,2],[0,2],[1,3],...]
         for i in range(size):
             self.agents[i] = generator(i)
+            self.agents[i].set_neighbours(self.network[i])
         self.contact_rate = per_capita_contact_rate
         self.trace_rate = trace_rate
         self.generator = generator
@@ -46,3 +47,4 @@ class Population:
     def reset(self):
         for i in range(self.size):
             self.agents[i] = self.generator(i)
+            self.agents[i].set_neighbours(self.network[0])
