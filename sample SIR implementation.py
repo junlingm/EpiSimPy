@@ -15,9 +15,9 @@ def gen(i):
 
 # network = DegreeDistribution(1000, lambda: random.randint(1, 20))
 network = ER(100, 0.1)
-per_capita_contact_rate = 0.02
+per_edge_contact_rate = 0.02
 trace_rate = 20
-population = Population(100, gen, network.network, per_capita_contact_rate, trace_rate)
+population = Population(100, gen, network.network, per_edge_contact_rate, trace_rate)
 
 states = ["S", "I", "R"]
 traced_states = []
