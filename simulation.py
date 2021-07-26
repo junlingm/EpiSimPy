@@ -59,7 +59,6 @@ class Simulation:
             if min_time < inf:
                 self.events.insert(SelfEvent(agent, next_trans), min_time + self.time)
                 agent.duration = min_time
-
             if (agent.state, agent.quarantined) in self.contact_states:
                 con = self.population.contact(agent)
                 while True:
@@ -81,7 +80,6 @@ class Simulation:
 
         for person in self.population.agents:
             new_events(person)
-
         while bool(times) and self.events.root is not None:
 
             next_event = self.events.remove_smallest()
@@ -124,7 +122,6 @@ class Simulation:
                     if person.number not in contacter.last_contacts:
                         contacter.last_contacts.append(person.number)
                     if transition.valid():
-
                         # this comes before the state is changed
                         for logger in self.loggers:
                             logger.log(person.state, transition.to_state, person.quarantined, person.quarantined)
@@ -136,7 +133,6 @@ class Simulation:
 
             elif isinstance(next_event.event, TraceEvent):
                 person = next_event.event.person
-                # contact = next_event.event.contact # this variable isn't necessary in the current implementation
                 if person.state not in self.traced_states:
                     if not person.quarantined:
 
@@ -145,7 +141,6 @@ class Simulation:
                         for logger in self.loggers:
                             logger.log(person.state, person.state, False, True)
 
-                        person.last_quar = next_event.value  # updates the latest reason for being quarantined
                         self.time = next_event.value
                         self.events.insert(SelfEvent(person, QuarTrans(None, True, False)),
                                            self.time + self.quar_period)
