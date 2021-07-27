@@ -6,8 +6,6 @@ from networks import *
 
 
 def gen(i):
-    li = [i for i in range(100)]
-    li.remove(i)
     if i < 20:
         return Agent("E", number=i)
     return Agent("S", number=i)
