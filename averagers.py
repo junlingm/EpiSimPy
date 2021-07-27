@@ -18,12 +18,17 @@ class OneByOne:
 
 def averager(data):  # takes a list of lists of comparable data as input
     size = len(data[0])
+    for sim in data:
+        size = max(size, len(sim))
     reps = len(data)
     total = [0 for _ in range(size)]
     for sim in data:
         for i in range(size):
-            total[i] += sim[i]
+            try:
+                total[i] += sim[i]
+            except IndexError:
+                total[i] += sim[-1]
     for i in range(size):
         total[i] /= reps
-
+    return total
 
