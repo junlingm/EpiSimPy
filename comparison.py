@@ -35,7 +35,7 @@ SIR.define(InfTrans(from_state="I", to_state="R",
 SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
 SIR.define(ClassTotal("S", N - I_0, "S"))
 
-reps = 10000
+reps = 1000
 data_1 = []
 data_2 = []
 for _ in range(reps):
