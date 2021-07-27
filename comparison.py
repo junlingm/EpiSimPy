@@ -7,14 +7,13 @@ from networks import *
 from averagers import *
 import matplotlib.pyplot as plt
 
-N = 1000
+N = 10000
 I_0 = 20
 beta = 0.02
-ER_p = 0.01
+ER_p = 0.001
 lambd = (N - 1) * ER_p
 gamma = 1 / 10
 dt = 0.01
-t_max = 100
 
 
 def gen(i):
@@ -35,7 +34,7 @@ SIR.define(InfTrans(from_state="I", to_state="R",
 SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
 SIR.define(ClassTotal("S", N - I_0, "S"))
 
-reps = 1000
+reps = 2000
 data_1 = []
 data_2 = []
 for _ in range(reps):
