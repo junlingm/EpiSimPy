@@ -46,6 +46,8 @@ class Simulation:
             data[logger.name] = []
             logger.reset()
         self.population.reset()  # reset population
+        for time in times:
+            self.events.insert(UpdateEvent(), time)
 
         def new_events(agent):
             agent.duration = None
@@ -83,17 +85,18 @@ class Simulation:
 
         for person in self.population.agents:
             new_events(person)
-        while bool(times) and self.events.root is not None:
+        while self.events.root is not None and self.time <= times[-1]:
 
             next_event = self.events.remove_smallest()
 
-            while bool(times) and next_event.value > times[0]:
+            if isinstance(next_event.event, UpdateEvent):
                 for logger in self.loggers:
                     data[logger.name].append(logger.value)
-                data["time"].append(times[0])
-                times.pop(0)
+                data["time"].append(next_event.value)
+                if next_event.event.end_sim:
+                    return data
 
-            if isinstance(next_event.event, SelfEvent):
+            elif isinstance(next_event.event, SelfEvent):
 
                 person = next_event.event.person
                 transition = next_event.event.transition
