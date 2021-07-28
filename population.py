@@ -48,3 +48,4 @@ class Population:
         for i in range(self.size):
             self.agents[i] = self.generator(i)
             self.agents[i].set_neighbours(self.network[i])
+    # this reuses the same network instead of generating a new one
