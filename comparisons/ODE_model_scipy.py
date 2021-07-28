@@ -1,3 +1,4 @@
+import time
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from ODE_model import *
@@ -8,6 +9,7 @@ from loggers import *
 from networks import *
 from averagers import *
 
+start_time = time.time()
 
 N = 10000
 I_0 = 20
@@ -57,7 +59,7 @@ data_1 = []
 for _ in range(reps):
     sim = SIR.run(list(range(100)))
     data_1.append(sim["S"])
-    print(sim["S"][-1])
+    # print(sim["S"][-1])
 avg_1 = averager(data_1)
 
 for _ in range(len(avg_1), 100):
@@ -65,4 +67,6 @@ for _ in range(len(avg_1), 100):
 
 plt.plot(range(100), avg_1, color="red")
 plt.plot(range(100), avg_2, color="blue")
+print("time elapsed: ", time.time()-start_time)
 plt.show()
+
