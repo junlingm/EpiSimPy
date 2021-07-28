@@ -62,11 +62,14 @@ class Simulation:
             if (agent.state, agent.quarantined) in self.contact_states:
                 con = self.population.contact(agent)
                 while True:
-                    e = next(con)
-                    if e["time"] > agent.duration:
+                    try:
+                        e = next(con)
+                        if e["time"] > agent.duration:
+                            break
+                        self.events.insert(ContactEvent(self.population.agents[e['contact']],
+                                                        contacter=agent), e['time'] + self.time)
+                    except StopIteration:
                         break
-                    self.events.insert(ContactEvent(self.population.agents[e['contact']],
-                                                    contacter=agent), e['time'] + self.time)
 
             if agent.state in self.traced_states:  # if the person joined a traced state
                 trc = self.population.trace(agent)

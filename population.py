@@ -34,7 +34,7 @@ class Population:
 
     def contact(self, agent):
         time = 0
-        while time < agent.duration and bool(agent.neighbours):
+        while bool(agent.neighbours):
             time += np.random.exponential(1 / (self.contact_rate * len(agent.neighbours)))
             contact = random.sample(agent.neighbours, 1)[0]
             yield {"contact": contact, "time": time}
