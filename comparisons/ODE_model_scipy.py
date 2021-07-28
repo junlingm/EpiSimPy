@@ -15,7 +15,6 @@ beta = 0.02
 ER_p = 0.01
 lambd = (N - 1) * ER_p
 gamma = 1 / 10
-dt = 0.01
 dg = lambda x: math.exp(lambd * (x - 1)) * lambd
 ddg = lambda x: math.exp(lambd * (x - 1)) * lambd ** 2
 
@@ -53,7 +52,7 @@ SIR.define(InfTrans(from_state="I", to_state="R",
 SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
 SIR.define(ClassTotal("S", N - I_0, "S"))
 
-reps = 1
+reps = 100
 data_1 = []
 for _ in range(reps):
     sim = SIR.run(list(range(100)))
