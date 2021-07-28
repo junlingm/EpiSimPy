@@ -9,10 +9,10 @@ from networks import *
 from averagers import *
 
 
-N = 1000
+N = 10000
 I_0 = 20
 beta = 0.02
-ER_p = 0.01
+ER_p = 0.001
 lambd = (N - 1) * ER_p
 gamma = 1 / 10
 dg = lambda x: math.exp(lambd * (x - 1)) * lambd
