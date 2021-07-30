@@ -12,7 +12,7 @@ from averagers import *
 start_time = time.time()
 
 N = 10000
-I_0 = 20
+I_0 = 100
 beta = 0.02
 ER_p = 0.001
 lambd = (N - 1) * ER_p
@@ -24,8 +24,8 @@ ddg = lambda x: math.exp(lambd * (x - 1)) * lambd ** 2
 def Miller(t, r):
     x, y, S = r
     fx = -beta * y
-    fy = -beta * y - gamma * y + beta * y * ddg(x) / dg(1)
-    fS = -beta * y * dg(x) * N
+    fy = -beta * y - gamma * y + beta * y * ddg(x) / dg(1) * (1-I_0/N)
+    fS = -beta * y * dg(x) * (N-I_0)
     return fx, fy, fS
 
 
@@ -59,7 +59,7 @@ data_1 = []
 for _ in range(reps):
     sim = SIR.run(list(range(100)))
     data_1.append(sim["S"])
-    # print(sim["S"][-1])
+    #print(sim["S"][-1])
 avg_1 = averager(data_1)
 
 for _ in range(len(avg_1), 100):
