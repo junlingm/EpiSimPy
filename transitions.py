@@ -34,3 +34,12 @@ class QuarTrans(Transition):
         super().__init__(from_state, from_state, None)
         self.from_quar = from_quar
         self.to_quar = to_quar
+
+
+class TestTrans(Transition):
+    # it is assumed that an agent becomes traced if they undergo this transition
+    def __init__(self, from_state, from_quar, to_quar, waiting_time):
+        super().__init__(from_state, from_state, waiting_time)
+        self.from_quar = from_quar
+        self.to_quar = to_quar
+
