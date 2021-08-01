@@ -15,11 +15,12 @@ class InfTrans(Transition):
 
 
 class Contact(Transition):
-    def __init__(self, from_state, to_state, contact_state, contact_quar, chance):
+    def __init__(self, from_state, to_state, self_quar, contact_state, contact_quar, chance):
         super().__init__(from_state, to_state, None)
         # this has to come after
         self.contact = contact_state
         self.contact_quar = contact_quar
+        self.self_quar = self_quar
 
         # this is the chance that the contact produces a valid event, eg. if infectivity is reduced for the E class
         self.chance = chance

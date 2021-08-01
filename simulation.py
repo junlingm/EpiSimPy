@@ -29,7 +29,7 @@ class Simulation:
         if isinstance(obj, Transition):
             if isinstance(obj, Contact):
                 self.contact_states[obj.contact, obj.contact_quar] = True
-                self.contact_trans[obj.from_state, obj.contact, obj.contact_quar] = obj
+                self.contact_trans[obj.from_state, obj.self_quar, obj.contact, obj.contact_quar] = obj
                 # this assumes only one contact event between two specific states
 
             elif isinstance(obj, InfTrans):
@@ -150,11 +150,13 @@ class Simulation:
             elif isinstance(next_event.event, ContactEvent):
                 person = next_event.event.person
                 contacter = next_event.event.contacter
-                if (person.state, contacter.state, contacter.quarantined) in self.contact_trans:
-                    transition = self.contact_trans[person.state, contacter.state, contacter.quarantined]
+                if (person.state, person.quarantined, contacter.state, contacter.quarantined) in self.contact_trans:
+                    transition = self.contact_trans[person.state, person.quarantined, contacter.state, contacter.quarantined]
                     if person.number not in contacter.last_contacts:
                         contacter.last_contacts.append(person.number)
                     if transition.valid():
+                        # no longer assumes susceptible quarantined people not infected
+
                         # this comes before the state is changed
                         for logger in self.loggers:
                             logger.log(person.state, transition.to_state, person.quarantined, person.quarantined)
