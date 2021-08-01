@@ -28,7 +28,7 @@ SIR.define(InfTrans(from_state="I", to_state="R",
                     waiting_time=lambda: np.random.exponential(10)))
 
 
-SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
+SIR.define(Contact(from_state="S", to_state="I", self_quar=False, contact_state="I", contact_quar=False, chance=1))
 
 
 SIR.define(ClassTotal("S", 980, "S"))
