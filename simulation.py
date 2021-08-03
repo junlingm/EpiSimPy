@@ -80,7 +80,8 @@ class Simulation:
             if (agent.state, agent.quarantined) in self.test_trans:
 
                 trans = self.test_trans[(agent.state, agent.quarantined)]
-                self.events.insert(SelfEvent(agent, trans), self.time + transition.waiting_time())
+                t = trans.waiting_time()
+                self.events.insert(SelfEvent(agent, trans), self.time + t)
 
         def new_trace_events(agent):
             if (agent.state, agent.quarantined) in self.traced_states:
@@ -129,7 +130,7 @@ class Simulation:
                         new_trace_events(person)
 
                 elif isinstance(transition, QuarTrans):
-
+                    # does quarantine end regardless of a new test?
                     person.quarantined = False
                     self.time = next_event.value
 
@@ -141,6 +142,8 @@ class Simulation:
                 elif isinstance(transition, TestTrans):
                     # this will not trace after recovery; it might be more general to assume otherwise
                     # and change the distribution of test time accordingly
+
+                    # if there is a test delay a person might recover and test positive
                     if transition.from_state == person.state:
                         for logger in self.loggers:
                             logger.log(person.state, person.state, person.quarantined, transition.to_quar)
