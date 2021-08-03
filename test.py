@@ -21,11 +21,11 @@ def gen(i):
 
 
 # network = DegreeDistribution(100, lambda: random.randint(1, 20))
-network = ER(1000, 0.01)
+network = ER(10000, 0.001)
 
 per_edge_contact_rate = 0.2
 trace_rate = 10
-population = Population(1000, gen, network.network, per_edge_contact_rate, trace_rate)
+population = Population(10000, gen, network.network, per_edge_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
@@ -58,25 +58,27 @@ SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state=
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=False, chance=0.3))
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
 
-SIR.define(ClassTotal("S", 980, "S"))
+SIR.define(ClassTotal("S", 9980, "S"))
 
 
 final_S = []
 
-test_times = np.linspace(0.1, 1.9, 10)
+trace_rates = np.linspace(0.1, 1.9, 10)
 avgs = []
-for time in test_times:
-    print("starting rate: ", time)
+for rate in trace_rates:
+    print("starting rate: ", rate)
     avg = 0
-    for _ in range(1000):
-        SIR.test_trans[("I", False)].waiting_time = lambda: np.random.exponential(time)
+    for _ in range(100):
+        SIR.population.trace_rate = rate
         data = SIR.run(list(range(200)))
         final_S = data["S"][-1]
         avg += final_S
     avgs.append(avg/100)
-    print("finished rate: ", time)
+    print("finished rate: ", rate)
 
-plt.plot(test_times, avgs)
+plt.plot(trace_rates, avgs)
+plt.xlabel("trace rate")
+plt.ylabel("average final susceptible population")
 plt.show()
 
 # plt.plot(data["time"], data["S"], color="red")

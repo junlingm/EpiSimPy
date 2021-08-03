@@ -54,6 +54,7 @@ SIR.define(ClassTotal("S", 9980, "S"))
 SIR.define(Total("Eu", 20, "E", False))  # E unquarantined
 SIR.define(Total("Eq", 0, "E", True))  # E quarantined
 SIR.define(Total("Iq", 0, "I", True))
+SIR.define(Total("Iu", 0, "I", False))
 SIR.define(ClassTotal("T", 0, "T"))
 data = SIR.run(list(range(200)))
 
@@ -61,6 +62,8 @@ print("time: ", data["time"])
 print("S: ", data["S"])
 print("E unquarantined: ", data["Eu"])
 print("E quarantined: ", data["Eq"])
+print("I unquarantined: ", data["Iu"])
+print("I quarantined: ", data["Iq"])
 print("final susceptible count:", data["S"][-1])
 # plt.plot(data["time"], data["S"], color="red")
 #plt.plot(data["time"], data["S"], color="blue")
