@@ -68,8 +68,8 @@ avgs = []
 for rate in trace_rates:
     print("starting rate: ", rate)
     avg = 0
-    for _ in range(100):
-        SIR.population.trace_rate = rate
+    for _ in range(10):
+        SIR.population.trace_rate = 1/rate
         data = SIR.run(list(range(200)))
         final_S = data["S"][-1]
         avg += final_S
