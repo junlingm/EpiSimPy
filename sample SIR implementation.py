@@ -2,20 +2,17 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
-from networks import *
 
 
-def gen(i):
+def gen(i, s):
     if i < 20:
-        return Agent("I", number=i)
-    return Agent("S", number=i)
+        return Agent("I", number=i, size=s)
+    return Agent("S", number=i, size=s)
 
 
-# network = DegreeDistribution(1000, lambda: random.randint(1, 20))
-network = ER(1000, 0.01)
-per_edge_contact_rate = 0.02
+global_contact_rate = 0.2
 trace_rate = None
-population = Population(1000, gen, network.network, per_edge_contact_rate, trace_rate)
+population = Population(1000, gen, global_contact_rate, trace_rate)
 
 states = ["S", "I", "R"]
 traced_states = []

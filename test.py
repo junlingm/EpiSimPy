@@ -1,31 +1,20 @@
-import matplotlib.pyplot as plt
-from simulation import *
-from population import *
-from transitions import *
-from loggers import *
-from networks import *
-from comparisons.ODE_model import *
 
 from simulation import *
 from population import *
 from transitions import *
 from loggers import *
-from networks import *
 import matplotlib.pyplot as plt
 
 
-def gen(i):
+def gen(i, s):
     if i < 20:
-        return Agent("E", number=i)
-    return Agent("S", number=i)
+        return Agent("E", number=i, size=s)
+    return Agent("S", number=i, size=s)
 
 
-# network = DegreeDistribution(100, lambda: random.randint(1, 20))
-network = ER(10000, 0.001)
-
-per_edge_contact_rate = 0.2
+global_contact_rate = 0.2
 trace_rate = 10
-population = Population(10000, gen, network.network, per_edge_contact_rate, trace_rate)
+population = Population(10000, gen, global_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
