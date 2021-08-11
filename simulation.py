@@ -6,7 +6,7 @@ from math import inf
 
 
 class Simulation:
-    def __init__(self, states, traced_states, population, quar_period):
+    def __init__(self, states, traced_states, population, quar_period, quar_test_trans, pos_test):
         self.states = states
         self.traced_states = traced_states
         self.population = population
@@ -16,6 +16,8 @@ class Simulation:
         self.test_trans = {}
         self.quar_period = quar_period
         self.loggers = []
+        self.quar_test_trans = quar_test_trans
+        self.pos_test = pos_test
 
         for state in self.states:
             self.infection_trans[state] = []
@@ -181,6 +183,10 @@ class Simulation:
                             logger.log(person.state, person.state, False, True)
 
                         self.time = next_event.value
+                        if person.state in self.pos_test:
+                            t = self.quar_test_trans()
+                            trans = TestTrans(person.state, True, True, None)
+                            self.events.insert(SelfEvent(person, trans), self.time+t)
                         self.events.insert(SelfEvent(person, QuarTrans(None, True, False)),
                                            self.time + self.quar_period)
 

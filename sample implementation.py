@@ -25,8 +25,9 @@ traced_states = [("I", True)]
 # these are states that are automatically traced
 
 quar_period = 14
-
-SIR = Simulation(states, traced_states, population, quar_period)
+quar_test_dist = lambda: np.random.exponential(2)
+pos_test = ["E", "P", "I", "A"]
+SIR = Simulation(states, traced_states, population, quar_period, quar_test_dist, pos_test)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -66,5 +67,5 @@ print("I unquarantined: ", data["Iu"])
 print("I quarantined: ", data["Iq"])
 print("final susceptible count:", data["S"][-1])
 # plt.plot(data["time"], data["S"], color="red")
-#plt.plot(data["time"], data["S"], color="blue")
-#plt.show()
+# plt.plot(data["time"], data["S"], color="blue")
+# plt.show()

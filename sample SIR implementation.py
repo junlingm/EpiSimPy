@@ -21,7 +21,7 @@ states = ["S", "I", "R"]
 traced_states = []
 quar_period = None
 
-SIR = Simulation(states, traced_states, population, quar_period)
+SIR = Simulation(states, traced_states, population, quar_period, None, [])
 
 
 SIR.define(InfTrans(from_state="I", to_state="R",
