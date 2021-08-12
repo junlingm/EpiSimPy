@@ -6,7 +6,7 @@ from math import inf
 
 
 class Simulation:
-    def __init__(self, states, traced_states, population, quar_period):
+    def __init__(self, states, traced_states, population, quar_period, pos_test, periodic_test_interval=None):
         self.states = states
         self.traced_states = traced_states
         self.population = population
@@ -16,6 +16,8 @@ class Simulation:
         self.test_trans = {}
         self.quar_period = quar_period
         self.loggers = []
+        self.pos_test = pos_test
+        self.periodic_test_interval = periodic_test_interval
 
         for state in self.states:
             self.infection_trans[state] = []
@@ -36,7 +38,7 @@ class Simulation:
                 self.infection_trans[obj.from_state] += [obj]
 
             elif isinstance(obj, TestTrans):
-                self.test_trans[(obj.from_state,obj.from_quar)] = obj
+                self.test_trans[(obj.from_state, obj.from_quar)] = obj
                 # there should only be one test transition for each state
 
         elif isinstance(obj, Logger):
@@ -53,6 +55,9 @@ class Simulation:
         self.population.reset()  # reset population
         for time in times:
             self.events.insert(UpdateEvent(), time)
+        if self.periodic_test_interval is not None:
+            for i in range((times[-1]//self.periodic_test_interval)+1):
+                self.events.insert(PeriodicTestEvent(), i*self.periodic_test_interval)
 
         def new_events(agent):
             agent.duration = None
@@ -81,7 +86,7 @@ class Simulation:
 
                 trans = self.test_trans[(agent.state, agent.quarantined)]
                 t = trans.waiting_time()
-                self.events.insert(SelfEvent(agent, trans), self.time + t)
+                self.events.insert(TestPosEvent(agent, trans), self.time + t)
 
         def new_trace_events(agent):
             if (agent.state, agent.quarantined) in self.traced_states:
@@ -139,16 +144,15 @@ class Simulation:
 
                     new_trace_events(person)
 
-                elif isinstance(transition, TestTrans):
-                    # this will not trace after recovery; it might be more general to assume otherwise
-                    # and change the distribution of test time accordingly
-
-                    # if there is a test delay a person might recover and test positive
-                    if transition.from_state == person.state:
-                        for logger in self.loggers:
-                            logger.log(person.state, person.state, person.quarantined, transition.to_quar)
-                        person.quarantined = transition.to_quar
-                        new_trace_events(person)
+            elif isinstance(next_event.event, TestPosEvent):
+                transition = next_event.event.transition
+                person = next_event.event.person
+                if transition is not None:
+                    for logger in self.loggers:
+                        logger.log(person.state, person.state, person.quarantined, transition.to_quar)
+                    person.quarantined = transition.to_quar
+                person.traced = True
+                new_trace_events(person)
 
             elif isinstance(next_event.event, ContactEvent):
                 person = next_event.event.person
@@ -185,6 +189,11 @@ class Simulation:
                                            self.time + self.quar_period)
 
                         new_trace_events(person)
+
+            elif isinstance(next_event.event, PeriodicTestEvent):
+                for person in self.population.agents:
+                    if person.state in self.pos_test:
+                        self.events.insert(TestPosEvent(person, None), next_event.value)
 
         return data
 

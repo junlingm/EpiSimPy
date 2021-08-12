@@ -21,12 +21,13 @@ population = Population(10000, gen, network.network, per_edge_contact_rate, trac
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
+pos_test = ["E", "P", "I", "A"]
 # state = "I", quarantine = True
 # these are states that are automatically traced
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, 14)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))

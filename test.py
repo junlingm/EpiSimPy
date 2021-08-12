@@ -1,11 +1,3 @@
-import matplotlib.pyplot as plt
-from simulation import *
-from population import *
-from transitions import *
-from loggers import *
-from networks import *
-from comparisons.ODE_model import *
-
 from simulation import *
 from population import *
 from transitions import *
@@ -24,17 +16,18 @@ def gen(i):
 network = ER(10000, 0.001)
 
 per_edge_contact_rate = 0.2
-trace_rate = 10
+trace_rate = 2
 population = Population(10000, gen, network.network, per_edge_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
+pos_test = ["E", "P", "I", "A"]
 # state = "I", quarantine = True
 # these are states that are automatically traced
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, None)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -56,31 +49,30 @@ SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state=
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="P", contact_quar=False, chance=0.4))
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="P", contact_quar=True, chance=0.06))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=False, chance=0.3))
-# SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
+# SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
 
 SIR.define(ClassTotal("S", 9980, "S"))
+data = SIR.run(list(range(200)))
 
+reps = 100
 
-final_S = []
-
-trace_rates = np.linspace(0.1, 1.9, 10)
+quar_ps = [8, 11, 14, 17, 20, 100]
 avgs = []
-for rate in trace_rates:
-    print("starting rate: ", rate)
-    avg = 0
-    for _ in range(10):
-        SIR.population.trace_rate = 1/rate
+for period in quar_ps:
+    final_S = []
+    print("new period: ", period)
+    for _ in range(reps):
+        print(_)
+        SIR.periodic_test_interval = period
         data = SIR.run(list(range(200)))
-        final_S = data["S"][-1]
-        avg += final_S
-    avgs.append(avg/100)
-    print("finished rate: ", rate)
+        final_S.append(data["S"][-1])
+    avgs.append(sum(final_S)/reps)
 
-plt.plot(trace_rates, avgs)
-plt.xlabel("trace rate")
-plt.ylabel("average final susceptible population")
+print(avgs)
+plt.plot([8,11,14,17,20,100], avgs)
+plt.xlabel("periodic testing interval")
+plt.ylabel("final susceptible count")
 plt.show()
 
-# plt.plot(data["time"], data["S"], color="red")
-#plt.plot(data["time"], data["S"], color="blue")
-#plt.show()
+
+
