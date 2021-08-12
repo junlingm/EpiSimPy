@@ -59,7 +59,7 @@ class Population(Agent):
         self.generator = generator if generator is not None else lambda x: Agent(x)
         self.agents = [None] * size
         for i in range(size):
-            agent = generator(i)
+            agent = self.generator(i)
             self.agents[i] = agent
             self.schedule(agent)
 
