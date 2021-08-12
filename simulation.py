@@ -6,7 +6,7 @@ from math import inf
 
 
 class Simulation:
-    def __init__(self, states, traced_states, population, quar_period, pos_test, periodic_test_interval=None):
+    def __init__(self, states, traced_states, population, quar_period, pos_test, test_time):
         self.states = states
         self.traced_states = traced_states
         self.population = population
@@ -17,7 +17,7 @@ class Simulation:
         self.quar_period = quar_period
         self.loggers = []
         self.pos_test = pos_test
-        self.periodic_test_interval = periodic_test_interval
+        self.test_time = test_time
 
         for state in self.states:
             self.infection_trans[state] = []
@@ -55,9 +55,6 @@ class Simulation:
         self.population.reset()  # reset population
         for time in times:
             self.events.insert(UpdateEvent(), time)
-        if self.periodic_test_interval is not None:
-            for i in range((times[-1]//self.periodic_test_interval)+1):
-                self.events.insert(PeriodicTestEvent(), i*self.periodic_test_interval)
 
         def new_events(agent):
             agent.duration = None
@@ -187,13 +184,11 @@ class Simulation:
                         self.time = next_event.value
                         self.events.insert(SelfEvent(person, QuarTrans(None, True, False)),
                                            self.time + self.quar_period)
-
+                        if person.state in self.pos_test:
+                            t = self.test_time()
+                            self.events.insert(TestPosEvent(person, None), self.time + t)
                         new_trace_events(person)
 
-            elif isinstance(next_event.event, PeriodicTestEvent):
-                for person in self.population.agents:
-                    if person.state in self.pos_test:
-                        self.events.insert(TestPosEvent(person, None), next_event.value)
 
         return data
 

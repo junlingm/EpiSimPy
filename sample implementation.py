@@ -27,7 +27,9 @@ pos_test = ["E", "P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, 14)
+test_time = lambda: 10
+
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, test_time)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))

@@ -27,6 +27,3 @@ class TestPosEvent:
         self.transition = transition
 
 
-class PeriodicTestEvent:
-    def __init__(self):
-        pass
