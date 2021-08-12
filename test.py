@@ -27,7 +27,9 @@ pos_test = ["E", "P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, None)
+test_time = lambda: 10
+
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, test_time)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -54,23 +56,27 @@ SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state=
 SIR.define(ClassTotal("S", 9980, "S"))
 data = SIR.run(list(range(200)))
 
+print("time: ", data["time"])
+print("S: ", data["S"])
+print("final susceptible count:", data["S"][-1])
+
 reps = 100
 
-quar_ps = [8, 11, 14, 17, 20, 100]
+test_delay = [0.001, 1, 2, 3]
 avgs = []
-for period in quar_ps:
+for delay in test_delay:
     final_S = []
-    print("new period: ", period)
+    print("new delay: ", delay)
     for _ in range(reps):
         print(_)
-        SIR.periodic_test_interval = period
+        SIR.test_time = lambda: delay
         data = SIR.run(list(range(200)))
         final_S.append(data["S"][-1])
     avgs.append(sum(final_S)/reps)
 
 print(avgs)
-plt.plot([8,11,14,17,20,100], avgs)
-plt.xlabel("periodic testing interval")
+plt.plot([0,1,2,3], avgs)
+plt.xlabel("test result time after quarantine start")
 plt.ylabel("final susceptible count")
 plt.show()
 
