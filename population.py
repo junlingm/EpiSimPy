@@ -1,50 +1,86 @@
-import random
-import numpy as np
+from agent import Agent
+from numpy import random
 
 
-class Agent:
-    def __init__(self, initial_state, number=None, neighbours=None, quarantined=False):
-        if neighbours is None:
-            neighbours = []
-        self.state = initial_state
-        self.number = number
-        self.duration = None  # this is duration of the infectious stage
-        self.neighbours = neighbours
-        self.quarantined = quarantined
-        self.last_contacts = []  # for the purpose of contact tracing;
+class Contacts:
+    def __init__(self, population):
+        self.population = population
 
-    def add_neighbour(self, nbr):
-        self.neighbours.append(nbr)
-
-    def set_neighbours(self, li):
-        self.neighbours = li
+    def contacts(self, agent):
+        return list()
 
 
-class Population:
-    def __init__(self, size, generator, network, contact_rate, trace_rate):
-        self.size = size
-        self.agents = [None] * size
-        self.network = network  # a list, not a class; eg. [[1,2],[0,2],[1,3],...]
-        for i in range(size):
-            self.agents[i] = generator(i)
-            self.agents[i].set_neighbours(self.network[i])
-        self.contact_rate = contact_rate
-        self.trace_rate = trace_rate
-        self.generator = generator
+class RandomMixing(Contacts):
+    def __init__(self, population, per_capita_rate):
+        super().__init__(population)
+        self.rng = lambda current_time: random.exponential(1/per_capita_rate)
 
     def contact(self, agent):
-        time = 0
-        while time < agent.duration and bool(agent.neighbours):
-            time += np.random.exponential(1 / (self.contact_rate * len(agent.neighbours)))
-            contact = random.sample(agent.neighbours, 1)[0]
-            yield {"contact": contact, "time": time}
+        n = self.population.size()
+        i = random.randint(0, n-1)
+        if i == agent.id:
+            i += 1
+        return self.population[i], self.rng
 
-    def trace(self, agent):
-        for person in agent.last_contacts:
-            time = np.random.exponential(1 / self.trace_rate)
-            yield {"contact": person, "time": time}
 
-    def reset(self):
-        for i in range(self.size):
-            self.agents[i] = self.generator(i)
-            self.agents[i].set_neighbours(self.network[i])
+class AgentIterator:
+    def __init__(self, i):
+        self.iterators = [i]
+
+    def __next__(self):
+        while len(self.iterators) > 0:
+            try:
+                p = next(self.iterators[-1])
+                i = p.__iter__()
+                if i is None:
+                    return p
+                self.iterators.append(i)
+                continue
+            except StopIteration:
+                self.iterators.pop()
+        raise StopIteration
+
+class Population(Agent):
+    """
+    This class defines a population, i.e., a collection of agents.
+    """
+
+    def __init__(self, id, size, generator=None):
+        """
+        Initialize a population with an id, a given size, using an agent generator to generate agents
+
+        :param id: a unique id in the simulation to represent the population
+        :param size: the population size
+        :param generator: a generator function for agents. Each call of this function should return a new
+        agent. This function takes an integer as a single argument representing the index of the agent
+        """
+        super().__init__(id)
+        self.contact_rules = list()
+        self.generator = generator if generator is not None else lambda x: Agent(x)
+        self.agents = [None] * size
+        for i in range(size):
+            agent = generator(i)
+            self.agents[i] = agent
+            self.schedule(agent)
+
+    def set(self, rule):
+        if isinstance(rule, Contacts):
+            self.contact_rules.append(rule)
+
+    def __getitem__(self, item):
+        """
+        implements the [] operator to select an agent by index
+
+        :param item: the index of the agent of interest
+        :return: the agent at the index :param item:
+        """
+        return self.agents[item]
+
+    def size(self):
+        return len(self.agents)
+
+    def __iter__(self):
+        return AgentIterator(iter(self.agents))
+
+    def contacts(self, agent):
+        return [x.contact(agent) for x in self.contact_rules]

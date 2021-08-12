@@ -1,150 +1,62 @@
-from binarySearchTree import *
-from transitions import *
+from agent import Agent
+from population import Population
 from loggers import *
-from events import *
-from math import inf
+from transitions import Transition
 
 
-class Simulation:
-    def __init__(self, states, traced_states, population, quar_period):
-        self.states = states
-        self.traced_states = traced_states
-        self.population = population
-        self.infection_trans = {}
-        self.contact_states = {}
-        self.contact_trans = {}
-        self.quar_period = quar_period
-        self.loggers = []
+class Simulation(Population):
+    def __init__(self, name, size, generator):
+        super().__init__(name, size, generator)
+        self.loggers = list()
+        self._transitions = dict()
+        self.initializers = list()
 
-        for state in self.states:
-            self.infection_trans[state] = []
+    def set(self, rule):
+        if isinstance(rule, Logger):
+            self.loggers.append(rule)
+            return
 
-        # current time
-        self.time = None
-        # the events organized in the binary search tree
-        self.events = BinarySearchTree()
+        if isinstance(rule, Transition):
+            if rule.from_state not in self._transitions:
+                self._transitions[rule.from_state] = [rule]
+            else:
+                self._transitions[rule.from_state].append(rule)
+            return
 
-    def define(self, obj):
-        if isinstance(obj, Transition):
-            if isinstance(obj, Contact):
-                self.contact_states[obj.contact, obj.contact_quar] = True
-                self.contact_trans[obj.from_state, obj.contact, obj.contact_quar] = obj
-                # this assumes only one contact event between two specific states
-
-            elif isinstance(obj, InfTrans):
-                self.infection_trans[obj.from_state] += [obj]
-
-        elif isinstance(obj, Logger):
-            self.loggers += [obj]
+        super().set(rule)
 
     def run(self, times):
-        self.events.clear()  # reset the tree so that the simulation can be run multiple times
-        data = {"time": []}
-        times = list(times)
-        self.time = 0
+        values = {"times": [t for t in times]}
+        n = len(times)
         for logger in self.loggers:
-            data[logger.name] = []
-            logger.reset()
-        self.population.reset()  # reset population
+            if isinstance(logger, Counter):
+                values[logger.name] = [0] * n
 
-        def new_events(agent):
-            agent.duration = None
-            min_time = inf
-            next_trans = None
-            for trans in self.infection_trans[agent.state]:
-                new_time = trans.waiting_time()
-                if new_time < min_time:
-                    min_time = min(min_time, new_time)
-                    next_trans = trans
-            if min_time < inf:
-                self.events.insert(SelfEvent(agent, next_trans), min_time + self.time)
-                agent.duration = min_time
-            if (agent.state, agent.quarantined) in self.contact_states:
-                con = self.population.contact(agent)
-                while True:
-                    e = next(con)
-                    if e["time"] > agent.duration:
-                        break
-                    self.events.insert(ContactEvent(self.population.agents[e['contact']],
-                                                    contacter=agent), e['time'] + self.time)
+        t = times[0]
+        for agent in self:
+            for i in self.initializers:
+                i(t, agent)
 
-            if agent.state in self.traced_states:  # if the person joined a traced state
-                trc = self.population.trace(agent)
-                while True:
-                    try:
-                        e = next(trc)
-                        self.events.insert(TraceEvent(self.population.agents[e["contact"]], agent),
-                                           e["time"] + self.time)
-                    except StopIteration:
-                        break
-
-        for person in self.population.agents:
-            new_events(person)
-        while bool(times) and self.events.root is not None:
-
-            next_event = self.events.remove_smallest()
-
-            while bool(times) and next_event.value > times[0]:
-                for logger in self.loggers:
-                    data[logger.name].append(logger.value)
-                data["time"].append(times[0])
-                times.pop(0)
-
-            if isinstance(next_event.event, SelfEvent):
-
-                person = next_event.event.person
-                transition = next_event.event.transition
-
-                if isinstance(transition, InfTrans):
-                    if person.state == transition.from_state:
-
-                        person.state = transition.to_state
-                        self.time = next_event.value  # this needs to come before new_events()
-
-                        for logger in self.loggers:
-                            logger.log(transition.from_state,
-                                       transition.to_state, person.quarantined, person.quarantined)
-                        new_events(person)
-
-                elif isinstance(transition, QuarTrans):
-
-                    person.quarantined = False
-                    self.time = next_event.value
-
+        for i in range(n):
+            log_time = times[i]
+            while True:
+                if self.time > log_time:
+                    # log ...
                     for logger in self.loggers:
-                        logger.log(person.state, person.state, True, False)
+                        if isinstance(logger, Counter):
+                            values[logger.name][i] = logger.count
+                    break
+                self.handle(self)
+        return values
 
-            elif isinstance(next_event.event, ContactEvent):
-                person = next_event.event.person
-                contacter = next_event.event.contacter
-                if (person.state, contacter.state, contacter.quarantined) in self.contact_trans:
-                    transition = self.contact_trans[person.state, contacter.state, contacter.quarantined]
-                    if person.number not in contacter.last_contacts:
-                        contacter.last_contacts.append(person.number)
-                    if transition.valid():
-                        # this comes before the state is changed
-                        for logger in self.loggers:
-                            logger.log(person.state, transition.to_state, person.quarantined, person.quarantined)
+    def set_state(self, current_time, agent, state):
+        for logger in self.loggers:
+            logger.log(current_time, agent, state)
+        agent.state.set(state)
+        for t in self._transitions:
+            if t.match(agent):
+                for rule in self._transitions[t]:
+                    rule.schedule(current_time, agent)
 
-                        person.state = transition.to_state
-                        self.time = next_event.value  # this needs to come before new_events()
-
-                        new_events(person)
-
-            elif isinstance(next_event.event, TraceEvent):
-                person = next_event.event.person
-                if person.state not in self.traced_states:
-                    if not person.quarantined:
-
-                        person.quarantined = True
-
-                        for logger in self.loggers:
-                            logger.log(person.state, person.state, False, True)
-
-                        self.time = next_event.value
-                        self.events.insert(SelfEvent(person, QuarTrans(None, True, False)),
-                                           self.time + self.quar_period)
-        return data
-
-    def reset(self):
-        pass  # currently this is implemented at the top of the run() method
+    def initialize(self, initializer):
+        self.initializers.append(initializer)
