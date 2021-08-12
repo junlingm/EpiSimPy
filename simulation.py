@@ -145,12 +145,10 @@ class Simulation:
                     new_trace_events(person)
 
             elif isinstance(next_event.event, TestPosEvent):
-                transition = next_event.event.transition
                 person = next_event.event.person
-                if transition is not None:
-                    for logger in self.loggers:
-                        logger.log(person.state, person.state, person.quarantined, transition.to_quar)
-                    person.quarantined = transition.to_quar
+                for logger in self.loggers:
+                    logger.log(person.state, person.state, person.quarantined, True)
+                person.quarantined = True
                 person.traced = True
                 new_trace_events(person)
 
