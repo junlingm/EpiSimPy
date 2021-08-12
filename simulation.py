@@ -4,8 +4,21 @@ from loggers import *
 from transitions import Transition
 
 
+class Initializer:
+    def initial(self, time, agent):
+        return None
+
+
+class InitFunction(Initializer):
+    def __init__(self, func):
+        self.func = func
+
+    def initial(self, time, agent):
+        return self.func(time, agent)
+
+
 class Simulation(Population):
-    def __init__(self, name, size, generator):
+    def __init__(self, name, size, generator=None):
         super().__init__(name, size, generator)
         self.loggers = list()
         self._transitions = dict()
@@ -23,6 +36,9 @@ class Simulation(Population):
                 self._transitions[rule.from_state].append(rule)
             return
 
+        if isinstance(rule, Initializer):
+            self.initializers.append(rule)
+
         super().set(rule)
 
     def run(self, times):
@@ -35,7 +51,11 @@ class Simulation(Population):
         t = times[0]
         for agent in self:
             for i in self.initializers:
-                i(t, agent)
+                v = i.initial(t, agent)
+                if isinstance(v, State):
+                    self.set_state(t, agent, v)
+                elif isinstance(v, Event):
+                    agent.schedule(v)
 
         for i in range(n):
             log_time = times[i]
@@ -57,6 +77,3 @@ class Simulation(Population):
             if t.match(agent):
                 for rule in self._transitions[t]:
                     rule.schedule(current_time, agent)
-
-    def initialize(self, initializer):
-        self.initializers.append(initializer)
