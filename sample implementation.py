@@ -45,11 +45,11 @@ SIR.define(TestTrans(from_state="I", from_quar=False, to_quar=True,
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=False, chance=0.1))
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=True, chance=0.01))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="A", contact_quar=False, chance=0.25))
-# SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="A", contact_quar=True, chance=0.02))
+SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="A", contact_quar=True, chance=0.025))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="P", contact_quar=False, chance=0.4))
-# SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="P", contact_quar=True, chance=0.06))
+SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="P", contact_quar=True, chance=0.04))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=False, chance=0.3))
-# SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
+SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.03))
 
 SIR.define(ClassTotal("S", 9980, "S"))
 SIR.define(Total("Eu", 20, "E", False))  # E unquarantined
