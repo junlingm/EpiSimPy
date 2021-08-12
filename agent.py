@@ -37,6 +37,9 @@ class State:
     def __getitem__(self, item=None):
         return self.value if item is None else self.value[item]
 
+    def __contains__(self, item):
+        return item in self.value
+
     def __and__(self, other):
         if not isinstance(other, State):
             return self & State(other)
