@@ -1,40 +1,43 @@
 from simulation import *
 from population import *
+from agent import *
 from transitions import *
-from loggers import *
-from networks import *
+from numpy import random
+from time import time
+# import cProfile
 
 
-def gen(i):
-    if i < 20:
-        return Agent("I", number=i)
-    return Agent("S", number=i)
+wait_exp = lambda scale: lambda _: random.exponential(scale)
 
+N=10000
+beta = 0.3
+gamma = 0.2
+I0 = 10
 
-# network = DegreeDistribution(1000, lambda: random.randint(1, 20))
-network = ER(1000, 0.01)
-per_edge_contact_rate = 0.02
-trace_rate = None
-population = Population(1000, gen, network.network, per_edge_contact_rate, trace_rate)
+def to_contact(time, sim, agent, to_state):
+    v = random.random_sample()
+    return v < agent[0].state["infectivity"] * agent[1].state["susceptibility"]
 
-states = ["S", "I", "R"]
-traced_states = []
-quar_period = None
+def run(times):
+    sim = Simulation("test", N)
+    sim.set(Transition(State("I", "infection"), State("R", "infection"), wait_exp(1/gamma)))
+    sim.set(Transition(State("I", "infection") + State("S", "infection"),
+                       State("I", "infection") + State({"infection":"I", "infectivity":1}),
+                       to_change_callback=to_contact))
+    sim.set(Counter(name="S", state=State("S", "infection")))
+    sim.set(Counter(name="I", state=State("I", "infection")))
+    sim.set(Counter(name="R", state=State("R", "infection")))
+    sim.set(RandomMixing(sim, beta))
+    sim.set(InitFunction(lambda time, agent: State({"infection":"I", "susceptibility":0, "infectivity":1}) \
+        if agent.id < I0 else State({"infection":"S", "susceptibility":1, "infectivity":0})))
 
-SIR = Simulation(states, traced_states, population, quar_period)
+    return sim.run(times)
 
+start_time = time()
+# cProfile.run("v = run(range(150))")
+v = run(range(150))
 
-SIR.define(InfTrans(from_state="I", to_state="R",
-                    waiting_time=lambda: np.random.exponential(10)))
+for i in range(len(v["times"])):
+    print(v["times"][i], v["S"][i], v["I"][i])
 
-
-SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
-
-
-SIR.define(ClassTotal("S", 980, "S"))
-SIR.define(ClassTotal("I", 20, "I"))
-data = SIR.run(list(range(100)))
-
-print("time: ", data["time"])
-print("S: ", data["S"])
-print("I: ", data["I"])
+print("--- %s seconds ---" % (time() - start_time))
