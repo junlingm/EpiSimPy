@@ -3,62 +3,36 @@ from events import Event
 from sortedcontainers import SortedList
 
 
-class State:
+class State(dict):
     """
     Abstracts a specific state
     """
     def __init__(self, value=None, key=None):
-        if key is None:
-            self.value = value
-        else:
-            self.value = {key: value}
+        if key is not None:
+            self[key] = value
+        elif isinstance(value, dict):
+            for k in value:
+                self[k] = value[k]
+        elif value is not None:
+            self[None] = value
 
     def set(self, value):
-        if isinstance(value, State):
-            value = value.value
         if not isinstance(value, dict):
-            self.value = value
-        elif not isinstance(value, dict):
-            raise ValueError
+            self[None] = value
         else:
             for k in value:
-                self.value[k] = value[k]
-
-    def __setitem__(self, key, value):
-        if (key is None) or (key == "value"):
-            self.value = value
-        elif self.value is None:
-            self.value = {key: value}
-        elif isinstance(self.value, dict):
-            self.value[key] = value
-        else:
-            raise KeyError
-
-    def __getitem__(self, item=None):
-        return self.value if item is None else self.value[item]
-
-    def __contains__(self, item):
-        return item in self.value
+                self[k] = value[k]
 
     def __and__(self, other):
-        if not isinstance(other, State):
-            return self & State(other)
+        if not isinstance(other, dict):
+            return self & {None: other}
         state = self
-        if not isinstance(self.value, dict):
-            return state if self.value == other.value else State()
-
-        if not isinstance(other.value, dict):
-            return State()
-
-        for key in other.value:
-            if key not in state.value:
-                state.value[key] = other.value[key]
-            elif state.value[key] != other.value[key]:
+        for key in other:
+            if key not in state:
+                state[key] = other[key]
+            elif state[key] != other[key]:
                 return State()
         return state
-
-    def __repr__(self):
-        return str(self.value)
 
     def match(self, other):
         """
@@ -70,17 +44,13 @@ class State:
         """
         if isinstance(other, Agent):
             return self.match(other.state)
-        if not isinstance(other, State):
-            return self.match(State(other))
-        if not isinstance(self.value, dict):
-            return self.value == other.value
-        if not isinstance(other.value, dict):
-            return False
+        if not isinstance(other, dict):
+            return self.match({None:other})
 
-        for key in self.value:
-            if key not in other.value:
+        for key in self:
+            if key not in other:
                 return False
-            if other.value[key] != self.value[key]:
+            if other[key] != self[key]:
                 return False
         return True
 
@@ -121,7 +91,6 @@ class States:
 
     def __getitem__(self, item):
         return self.states[item]
-
 
 
 class Agent(Event):

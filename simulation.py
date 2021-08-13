@@ -1,4 +1,4 @@
-from agent import Agent
+from events import Event
 from population import Population
 from loggers import *
 from transitions import Transition
@@ -21,7 +21,7 @@ class Simulation(Population):
     def __init__(self, name, size, generator=None):
         super().__init__(name, size, generator)
         self.loggers = list()
-        self._transitions = dict()
+        self._transitions = list()
         self.initializers = list()
 
     def set(self, rule):
@@ -30,10 +30,7 @@ class Simulation(Population):
             return
 
         if isinstance(rule, Transition):
-            if rule.from_state not in self._transitions:
-                self._transitions[rule.from_state] = [rule]
-            else:
-                self._transitions[rule.from_state].append(rule)
+            self._transitions.append(rule)
             return
 
         if isinstance(rule, Initializer):
@@ -73,7 +70,6 @@ class Simulation(Population):
         for logger in self.loggers:
             logger.log(current_time, agent, state)
         agent.state.set(state)
-        for t in self._transitions:
-            if t.match(agent):
-                for rule in self._transitions[t]:
-                    rule.schedule(current_time, agent)
+        for rule in self._transitions:
+            if rule.from_state.match(agent):
+                rule.schedule(current_time, agent)
