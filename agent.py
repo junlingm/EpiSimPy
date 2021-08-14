@@ -7,10 +7,8 @@ class State(dict):
     """
     Abstracts a specific state
     """
-    def __init__(self, value=None, key=None):
-        if key is not None:
-            self[key] = value
-        elif isinstance(value, dict):
+    def __init__(self, value=None):
+        if isinstance(value, dict):
             for k in value:
                 self[k] = value[k]
         elif value is not None:
