@@ -21,6 +21,7 @@ population = Population(10000, gen, network.network, per_edge_contact_rate, trac
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
+
 # state = "I", quarantine = True
 # these are states that are automatically traced
 
