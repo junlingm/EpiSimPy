@@ -27,7 +27,7 @@ pos_test = ["P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, 14)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, periodic_test_interval=14)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -66,6 +66,5 @@ print("E quarantined: ", data["Eq"])
 print("I unquarantined: ", data["Iu"])
 print("I quarantined: ", data["Iq"])
 print("final susceptible count:", data["S"][-1])
-# plt.plot(data["time"], data["S"], color="red")
 #plt.plot(data["time"], data["S"], color="blue")
 #plt.show()
