@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 def gen(i):
     if i < 20:
-        return Agent("E", number=i)
-    return Agent("S", number=i)
+        return Agent("E", number=i, size=s)
+    return Agent("S", number=i, size=s)
 
 
 # network = DegreeDistribution(100, lambda: random.randint(1, 20))
