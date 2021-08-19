@@ -8,16 +8,16 @@ import matplotlib.pyplot as plt
 N_0 = 10000
 E_0 = 20  # everyone is either exposed or susceptible at t_0
 f = 0.5
-delta = 6
+delta = 2/3
 delta_Q = delta
-gamma_A = 5
-gamma_I = 5
-sigma = 2
+gamma_A = 1/5
+gamma_I = 1/5
+sigma = 1/2
 epsilon = 0  # need to define more transitions to change this
 beta_A = 0.25
 beta_P = 0.4
 beta_I = 0.3
-tau_I = 2  # rate at which an infected person gets tested
+tau_I = 1/2  # rate at which an infected person gets tested
 # theta_I, theta_A, theta_P = ?
 
 quar_period = 14
@@ -25,18 +25,15 @@ periodic_test_interval = None
 quar_test_time = None
 
 
-def gen(i):
+def gen(i, s):
     if i < E_0:
-        return Agent("E", number=i)
-    return Agent("S", number=i)
+        return Agent("E", number=i, size=s)
+    return Agent("S", number=i, size=s)
 
 
-# network = DegreeDistribution(100, lambda: random.randint(1, 20))
-network = ER(N_0, 0.001)
-
-per_edge_contact_rate = 0.2
+global_contact_rate = 2
 trace_rate = 2
-population = Population(N_0, gen, network.network, per_edge_contact_rate, trace_rate)
+population = Population(N_0, gen, global_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
@@ -48,17 +45,17 @@ pos_test = ["P", "I", "A"]
 SIR = Simulation(states, traced_states, population, quar_period, pos_test, quar_test_time, periodic_test_interval)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
-                    waiting_time=lambda: np.random.exponential(f * delta)))
+                    waiting_time=lambda: np.random.exponential(1/(f * delta))))
 SIR.define(InfTrans(from_state="E", to_state="P",
-                    waiting_time=lambda: np.random.exponential((1 - f) * delta)))
+                    waiting_time=lambda: np.random.exponential(1/((1 - f) * delta))))
 SIR.define(InfTrans(from_state="A", to_state="R",
-                    waiting_time=lambda: np.random.exponential(gamma_A)))
+                    waiting_time=lambda: np.random.exponential(1/gamma_A)))
 SIR.define(InfTrans(from_state="P", to_state="I",
-                    waiting_time=lambda: np.random.exponential(sigma)))
+                    waiting_time=lambda: np.random.exponential(1/sigma)))
 SIR.define(InfTrans(from_state="I", to_state="R",
-                    waiting_time=lambda: np.random.exponential(gamma_I)))
+                    waiting_time=lambda: np.random.exponential(1/gamma_I)))
 SIR.define(TestTrans(from_state="I", from_quar=False, to_quar=True,
-                     waiting_time=lambda: np.random.exponential(tau_I)))
+                     waiting_time=lambda: np.random.exponential(1/tau_I)))
 
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=False, chance=0.1))
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=True, chance=0.01))
