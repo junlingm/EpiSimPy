@@ -6,14 +6,11 @@ from networks import *
 import matplotlib.pyplot as plt
 
 
-def gen(i):
+def gen(i, s):
     if i < 20:
         return Agent("E", number=i, size=s)
     return Agent("S", number=i, size=s)
 
-
-# network = DegreeDistribution(100, lambda: random.randint(1, 20))
-network = ER(10000, 0.001)
 
 global_contact_rate = 5
 trace_rate = 2
@@ -27,7 +24,7 @@ pos_test = ["P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, quar_test_time=None, periodic_test_interval=14)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, quar_test_time=None, periodic_test_interval=None)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
