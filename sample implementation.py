@@ -2,7 +2,6 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
-from networks import *
 import matplotlib.pyplot as plt
 
 
