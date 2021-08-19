@@ -20,7 +20,7 @@ population = Population(1000, gen, network.network, per_edge_contact_rate, trace
 states = ["S", "I", "R"]
 traced_states = []
 quar_period = None
-SIR = Simulation(states, traced_states, population, quar_period, None, None, None)
+SIR = Simulation(states, traced_states, population, quar_period, ["I"], None, None)
 
 
 SIR.define(InfTrans(from_state="I", to_state="R",

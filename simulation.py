@@ -148,11 +148,12 @@ class Simulation:
 
             elif isinstance(next_event.event, TestPosEvent):
                 person = next_event.event.person
-                for logger in self.loggers:
-                    logger.log(person.state, person.state, person.quarantined, True)
-                person.quarantined = True
-                person.traced = True
-                new_trace_events(person)
+                if person.state in self.pos_test:
+                    for logger in self.loggers:
+                        logger.log(person.state, person.state, person.quarantined, True)
+                    person.quarantined = True
+                    person.traced = True
+                    new_trace_events(person)
 
             elif isinstance(next_event.event, ContactEvent):
                 person = next_event.event.person
