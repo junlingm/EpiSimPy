@@ -11,7 +11,7 @@ def gen(i, s):
     return Agent("S", number=i, size=s)
 
 
-global_contact_rate = 5
+global_contact_rate = 2
 trace_rate = 2
 population = Population(10000, gen, global_contact_rate, trace_rate)
 
@@ -23,7 +23,7 @@ pos_test = ["P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, quar_test_time=None, periodic_test_interval=None)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test=None, quar_test_time=None, periodic_test_interval=None)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -62,5 +62,5 @@ print("E quarantined: ", data["Eq"])
 print("I unquarantined: ", data["Iu"])
 print("I quarantined: ", data["Iq"])
 print("final susceptible count:", data["S"][-1])
-#plt.plot(data["time"], data["S"], color="blue")
-#plt.show()
+plt.plot(data["time"], data["S"], color="blue")
+plt.show()
