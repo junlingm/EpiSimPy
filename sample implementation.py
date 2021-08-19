@@ -3,7 +3,9 @@ from population import *
 from transitions import *
 from loggers import *
 import matplotlib.pyplot as plt
+import sys
 
+sys.setrecursionlimit(10000)
 
 def gen(i, s):
     if i < 20:
@@ -12,19 +14,17 @@ def gen(i, s):
 
 
 global_contact_rate = 2
-trace_rate = 2
+trace_rate = 0.00001
 population = Population(10000, gen, global_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
 pos_test = ["P", "I", "A"]
-# state = "I", quarantine = True
-# these are states that are automatically traced
 
 quar_period = 14
 
 SIR = Simulation(states, traced_states, population, quar_period, pos_test,
-                 quar_test_time=None, periodic_test_interval=None)
+                 quar_test_time=None, periodic_test_interval=14)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
