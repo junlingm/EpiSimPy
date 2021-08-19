@@ -22,6 +22,7 @@ tau_I = 2  # rate at which an infected person gets tested
 
 quar_period = 14
 periodic_test_interval = None
+quar_test_time = None
 
 
 def gen(i):
@@ -44,7 +45,7 @@ pos_test = ["P", "I", "A"]
 # state = "I", quarantine = True
 # these are states that are automatically traced
 
-SIR = Simulation(states, traced_states, population, quar_period, pos_test, periodic_test_interval)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test, quar_test_time, periodic_test_interval)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(f * delta)))
