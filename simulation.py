@@ -148,7 +148,7 @@ class Simulation:
 
             elif isinstance(next_event.event, TestPosEvent):
                 person = next_event.event.person
-                if person.state != "R":  # find a better way to implement this
+                if person.state in self.pos_test:  # find a better way to implement this
                     for logger in self.loggers:
                         logger.log(person.state, person.state, person.quarantined, True)
                     person.quarantined = True
