@@ -5,21 +5,22 @@ from loggers import *
 import matplotlib.pyplot as plt
 import sys
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(3000)
 
+p = 1
 N_0 = 10000
 E_0 = 20  # everyone is either exposed or susceptible at t_0
-f = 0.5
-delta = 2/3
+f = 0.25
+delta = 0.27
 delta_Q = delta
-gamma_A = 1/5
-gamma_I = 1/5
-sigma = 1/2
+gamma_A = 0.1
+gamma_I = 0.1177
+sigma = 0.662
 epsilon = 0  # need to define more transitions to change this
-beta_A = 0.25
-beta_P = 0.4
-beta_I = 0.3
-tau_I = 1/2  # rate at which an infected person gets tested
+beta_A = 0.3
+beta_P = 0.7
+beta_I = 0.5
+tau_I = 0.3  # rate at which an infected person gets tested
 # theta_I, theta_A, theta_P = ?
 
 quar_period = 14
@@ -35,7 +36,7 @@ def gen(i, s):
 
 global_contact_rate = 2
 trace_rate = 2
-population = Population(N_0, gen, global_contact_rate, trace_rate)
+population = Population(N_0, gen, global_contact_rate, trace_rate, trace_prob=p)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
@@ -74,12 +75,11 @@ SIR.define(Total("Eq", 0, "E", True))  # E quarantined
 SIR.define(Total("Iq", 0, "I", True))
 SIR.define(Total("Iu", 0, "I", False))
 SIR.define(ClassTotal("T", 0, "T"))
-data = SIR.run(list(range(200)))
 
-reps = 20
+reps = 3
 
 #trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5]
-trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 0.75, 1]
+trace_rates = [0.0001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 0.75, 1]
 avgs = []
 for rate in trace_rates:
     final_S = []
@@ -95,9 +95,9 @@ print(avgs)
 #plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5], avgs)
 plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 0.75, 1], avgs)
 
-plt.xlabel("test rate")
+plt.xlabel("trace rate")
 plt.ylabel("final susceptible count")
-plt.title("random mixing with 14 day periodic testing")
+#plt.title("random mixing with no periodic testing")
 plt.show()
 
 

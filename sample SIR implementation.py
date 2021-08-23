@@ -11,8 +11,9 @@ def gen(i, s):
 
 
 global_contact_rate = 5
+trace_prob = 1
 trace_rate = None
-population = Population(1000, gen, global_contact_rate, trace_rate)
+population = Population(1000, gen, global_contact_rate, trace_rate, trace_prob)
 
 states = ["S", "I", "R"]
 traced_states = []

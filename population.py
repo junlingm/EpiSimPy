@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from math import inf
 
 
 class Agent:
@@ -15,7 +16,7 @@ class Agent:
 
 
 class Population:
-    def __init__(self, size, generator, global_contact_rate, trace_rate):
+    def __init__(self, size, generator, global_contact_rate, trace_rate, trace_prob):
         self.size = size
         self.agents = [None] * size
         for i in range(size):
@@ -23,6 +24,7 @@ class Population:
         self.contact_rate = global_contact_rate
         self.trace_rate = trace_rate
         self.generator = generator
+        self.trace_prob = trace_prob
 
     def contact(self, agent):
         time = 0
@@ -35,8 +37,11 @@ class Population:
 
     def trace(self, agent):
         for person in agent.last_contacts:
-            time = np.random.exponential(1 / self.trace_rate)
-            yield {"contact": person, "time": time}
+            if random.random() < self.trace_prob:
+                if self.trace_rate == inf:
+                    yield {"contact": person, "time": 0}
+                time = np.random.exponential(1 / self.trace_rate)
+                yield {"contact": person, "time": time}
 
     def reset(self):
         for i in range(self.size):

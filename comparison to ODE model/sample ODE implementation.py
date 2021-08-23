@@ -4,24 +4,27 @@ from transitions import *
 from loggers import *
 from networks import *
 import matplotlib.pyplot as plt
+import sys
+
+sys.setrecursionlimit(5000)
 
 N_0 = 10000
 E_0 = 20  # everyone is either exposed or susceptible at t_0
-f = 0.5
-delta = 2/3
+f = 0.25
+delta = 0.27
 delta_Q = delta
-gamma_A = 1/5
-gamma_I = 1/5
-sigma = 1/2
+gamma_A = 0.1
+gamma_I = 0.1177
+sigma = 0.662
 epsilon = 0  # need to define more transitions to change this
-beta_A = 0.25
-beta_P = 0.4
-beta_I = 0.3
-tau_I = 1/2  # rate at which an infected person gets tested
+beta_A = 0.3
+beta_P = 0.7
+beta_I = 0.5
+tau_I = 0.3  # rate at which an infected person gets tested
 # theta_I, theta_A, theta_P = ?
 
 quar_period = 14
-periodic_test_interval = None
+periodic_test_interval = 14
 quar_test_time = None
 
 
@@ -32,7 +35,7 @@ def gen(i, s):
 
 
 global_contact_rate = 2
-trace_rate = 2
+trace_rate = 0.2
 population = Population(N_0, gen, global_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
