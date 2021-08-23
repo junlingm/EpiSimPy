@@ -4,8 +4,11 @@ from transitions import *
 from loggers import *
 import matplotlib.pyplot as plt
 import sys
+from math import inf
+import threading
 
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(100000)
+#threading.stack_size(200000000)
 
 p = 1
 N_0 = 10000
@@ -35,7 +38,7 @@ def gen(i, s):
 
 
 global_contact_rate = 2
-trace_rate = 2
+trace_rate = inf
 population = Population(N_0, gen, global_contact_rate, trace_rate, trace_prob=p)
 
 states = ["S", "E", "P", "I", "A", "R"]
@@ -79,25 +82,25 @@ SIR.define(ClassTotal("T", 0, "T"))
 reps = 3
 
 #trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5]
-trace_rates = [0.0001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 0.75, 1]
+trace_probs = [0, 0.5, 1]
 avgs = []
-for rate in trace_rates:
+for prob in trace_probs:
     final_S = []
-    print("new rate: ", rate)
+    print("new prob: ", prob)
     for _ in range(reps):
         print(_)
-        SIR.population.trace_rate = rate
+        SIR.population.trace_prob = prob
         data = SIR.run(list(range(200)))
-        final_S.append(data["S"][-1])
+        final_S.append((N_0-data["S"][-1])/N_0)
     avgs.append(sum(final_S)/reps)
 
 print(avgs)
 #plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5], avgs)
-plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 0.75, 1], avgs)
+plt.plot([0, 0.5, 1], avgs)
 
-plt.xlabel("trace rate")
-plt.ylabel("final susceptible count")
-#plt.title("random mixing with no periodic testing")
+plt.xlabel("p")
+plt.ylabel("final epidemic size")
+#plt.title("random mixing")
 plt.show()
 
 

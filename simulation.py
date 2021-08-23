@@ -111,7 +111,8 @@ class Simulation:
         while self.events.root is not None and self.time <= times[-1]:
 
             next_event = self.events.remove_smallest()
-
+            print(next_event.value)
+            print(isinstance(next_event.event, PeriodicTestEvent))
             if isinstance(next_event.event, UpdateEvent):
                 for logger in self.loggers:
                     data[logger.name].append(logger.value)
@@ -196,7 +197,12 @@ class Simulation:
             elif isinstance(next_event.event, PeriodicTestEvent):
                 for person in self.population.agents:
                     if person.state in self.pos_test:
-                        self.events.insert(TestPosEvent(person, None), next_event.value)
+                        # immediately execute the TestPosEvent
+                        for logger in self.loggers:
+                            logger.log(person.state, person.state, person.quarantined, True)
+                        person.quarantined = True
+                        person.traced = True
+                        new_trace_events(person)
 
         return data
 
