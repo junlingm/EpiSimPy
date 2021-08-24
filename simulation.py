@@ -101,8 +101,22 @@ class Simulation:
                 while True:
                     try:
                         e = next(trc)
-                        self.events.insert(TraceEvent(self.population.agents[e["contact"]], agent),
-                                           e["time"] + self.time)
+                        pers = self.population.agents[e["contact"]]
+                        if pers.state not in self.traced_states:
+                            if not pers.quarantined:
+
+                                pers.quarantined = True
+
+                                for logger in self.loggers:
+                                    logger.log(pers.state, pers.state, False, True)
+
+                                self.time = next_event.value
+                                self.events.insert(SelfEvent(pers, QuarTrans(None, True, False)),
+                                                   self.time + self.quar_period)
+                                if self.quar_test_time is not None and pers.state in self.pos_test:
+                                    t = self.quar_test_time()
+                                    self.events.insert(TestPosEvent(pers, None), self.time + t)
+                                new_trace_events(pers)
                     except StopIteration:
                         break
 
@@ -111,8 +125,8 @@ class Simulation:
         while self.events.root is not None and self.time <= times[-1]:
 
             next_event = self.events.remove_smallest()
-            print(next_event.value)
-            print(isinstance(next_event.event, PeriodicTestEvent))
+            #print(next_event.value)
+            #print(isinstance(next_event.event, PeriodicTestEvent))
             if isinstance(next_event.event, UpdateEvent):
                 for logger in self.loggers:
                     data[logger.name].append(logger.value)

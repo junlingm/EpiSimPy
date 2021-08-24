@@ -26,8 +26,9 @@ beta_I = 0.5
 tau_I = 0.3  # rate at which an infected person gets tested
 # theta_I, theta_A, theta_P = ?
 
+
 quar_period = 14
-periodic_test_interval = 14
+periodic_test_interval = None
 quar_test_time = None
 
 
@@ -79,11 +80,12 @@ SIR.define(Total("Iq", 0, "I", True))
 SIR.define(Total("Iu", 0, "I", False))
 SIR.define(ClassTotal("T", 0, "T"))
 
-reps = 3
+reps = 30
 
 #trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5]
-trace_probs = [0, 0.5, 1]
+trace_probs = np.linspace(0,1,21)
 avgs = []
+SIR.periodic_test_interval = None
 for prob in trace_probs:
     final_S = []
     print("new prob: ", prob)
@@ -96,11 +98,39 @@ for prob in trace_probs:
 
 print(avgs)
 #plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5], avgs)
-plt.plot([0, 0.5, 1], avgs)
+plt.plot(np.linspace(0,1,21), avgs, color="red")
+
+avgs = []
+SIR.periodic_test_interval = 7
+for prob in trace_probs:
+    final_S = []
+    print("new prob: ", prob)
+    for _ in range(reps):
+        print(_)
+        SIR.population.trace_prob = prob
+        data = SIR.run(list(range(200)))
+        final_S.append((N_0-data["S"][-1])/N_0)
+    avgs.append(sum(final_S)/reps)
+plt.plot(np.linspace(0,1,21), avgs, color="blue")
+print(avgs)
+
+avgs = []
+SIR.periodic_test_interval = 14
+for prob in trace_probs:
+    final_S = []
+    print("new prob: ", prob)
+    for _ in range(reps):
+        print(_)
+        SIR.population.trace_prob = prob
+        data = SIR.run(list(range(200)))
+        final_S.append((N_0-data["S"][-1])/N_0)
+    avgs.append(sum(final_S)/reps)
+plt.plot(np.linspace(0,1,21), avgs, color="green")
+print(avgs)
 
 plt.xlabel("p")
 plt.ylabel("final epidemic size")
-#plt.title("random mixing")
+plt.title("red = no periodic testing, blue = every 7 days, green = every 14 days")
 plt.show()
 
 
