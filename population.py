@@ -43,6 +43,11 @@ class Population:
                 time = np.random.exponential(1 / self.trace_rate)
                 yield {"contact": person, "time": time}
 
+    def p_test(self, period):
+        for person in self.agents:
+            time = random.random()*period
+            yield {"person": person, "time": time}
+
     def reset(self):
         for i in range(self.size):
             self.agents[i] = self.generator(i, self.size)

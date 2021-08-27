@@ -58,7 +58,7 @@ class Simulation:
         for time in times:
             self.events.insert(UpdateEvent(), time)
         if self.periodic_test_interval is not None:
-            for i in range((times[-1]//self.periodic_test_interval)+1):
+            for i in range(int((times[-1]//self.periodic_test_interval)+1)):
                 self.events.insert(PeriodicTestEvent(), i*self.periodic_test_interval)
 
         def new_events(agent):
@@ -209,15 +209,14 @@ class Simulation:
                         new_trace_events(person)
 
             elif isinstance(next_event.event, PeriodicTestEvent):
-                for person in self.population.agents:
-                    if person.state in self.pos_test:
-                        # immediately execute the TestPosEvent
-                        for logger in self.loggers:
-                            logger.log(person.state, person.state, person.quarantined, True)
-                        person.quarantined = True
-                        person.traced = True
-                        new_trace_events(person)
-
+                tests = self.population.p_test(self.periodic_test_interval)
+                while True:
+                    try:
+                        t = next(tests)
+                        pers = t["person"]
+                        self.events.insert(TestPosEvent(pers), self.time+t["time"])
+                    except StopIteration:
+                        break
         return data
 
     def reset(self):

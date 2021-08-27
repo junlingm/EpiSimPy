@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import sys
 from math import inf
 import threading
+from averagers import *
 
 sys.setrecursionlimit(100000)
 #threading.stack_size(200000000)
@@ -24,11 +25,15 @@ beta_A = 0.3
 beta_P = 0.7
 beta_I = 0.5
 tau_I = 0.3  # rate at which an infected person gets tested
+tau = 1/14
 # theta_I, theta_A, theta_P = ?
 
 
 quar_period = 14
-periodic_test_interval = None
+if tau == 0:
+    periodic_test_interval = None
+else:
+    periodic_test_interval = 1/tau
 quar_test_time = None
 
 
@@ -74,64 +79,46 @@ SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state=
 # SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
 
 SIR.define(ClassTotal("S", N_0 - E_0, "S"))
-SIR.define(Total("Eu", E_0, "E", False))  # E unquarantined
-SIR.define(Total("Eq", 0, "E", True))  # E quarantined
-SIR.define(Total("Iq", 0, "I", True))
-SIR.define(Total("Iu", 0, "I", False))
-SIR.define(ClassTotal("T", 0, "T"))
+SIR.define(ClassTotal("E", E_0, "E"))
+SIR.define(ClassTotal("P", 0, "P"))
+SIR.define(ClassTotal("A", 0, "A"))
+SIR.define(ClassTotal("I", 0, "I"))
+SIR.define(ClassTotal("R", 0, "R"))
 
-reps = 20
-
-#trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5]
-trace_probs = np.linspace(0,1,21)
-#avgs = []
-#SIR.periodic_test_interval = None
-#for prob in trace_probs:
- #   final_S = []
-  #  print("new prob: ", prob)
-  #  for _ in range(reps):
-  #      print(_)
-  #      SIR.population.trace_prob = prob
-  #      data = SIR.run(list(range(200)))
-  #      final_S.append((N_0-data["S"][-1])/N_0)
- #   avgs.append(sum(final_S)/reps)
-
-#print(avgs)
-#plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5], avgs)
-#plt.plot(np.linspace(0,1,21), avgs, color="red")
-
-#avgs = []
-#SIR.periodic_test_interval = 7
-#for prob in trace_probs:
-   # final_S = []
-   # print("new prob: ", prob)
-   # for _ in range(reps):
-    #    print(_)
-    #    SIR.population.trace_prob = prob
-    #    data = SIR.run(list(range(200)))
-     #   final_S.append((N_0-data["S"][-1])/N_0)
-    #avgs.append(sum(final_S)/reps)
-#plt.plot(np.linspace(0,1,21), avgs, color="blue")
-#print(avgs)
-
-avgs = []
-SIR.periodic_test_interval = 14
-for prob in trace_probs:
-    final_S = []
-    print("new prob: ", prob)
-    for _ in range(reps):
-        print(_)
-        SIR.population.trace_prob = prob
-        data = SIR.run(list(range(200)))
-        final_S.append((N_0-data["S"][-1])/N_0)
-    avgs.append(sum(final_S)/reps)
-plt.plot(np.linspace(0,1,21), avgs, color="green")
-print(avgs)
-
-plt.xlabel("p")
-plt.ylabel("final epidemic size")
-plt.title("red = no periodic testing, blue = every 7 days, green = every 14 days")
-plt.show()
+reps = 10
 
 
 
+sims_S = []
+sims_E = []
+sims_P = []
+sims_I = []
+sims_A = []
+sims_R = []
+print("new prob: ", 0)
+SIR.population.trace_prob = 0
+for _ in range(reps):
+    print(_)
+    data = SIR.run(list(range(200)))
+    sims_S.append(data["S"])
+    sims_E.append(data["E"])
+    sims_P.append(data["P"])
+    sims_I.append(data["I"])
+    sims_A.append(data["A"])
+    sims_R.append(data["R"])
+print(data["time"])
+sims_S = averager(sims_S)
+sims_E = averager(sims_E)
+print("max E", max(sims_E)/N_0)
+sims_P = averager(sims_P)
+sims_I = averager(sims_I)
+sims_A = averager(sims_A)
+print("max A", max(sims_A)/N_0)
+sims_R = averager(sims_R)
+
+print(sims_S)
+print(sims_E)
+print(sims_P)
+print(sims_I)
+print(sims_A)
+print(sims_R)
