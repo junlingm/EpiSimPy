@@ -14,7 +14,7 @@ def gen(i, s):
 
 
 global_contact_rate = 2
-trace_rate = 0.00001
+trace_rate = 2
 trace_prob = 1
 population = Population(10000, gen, global_contact_rate, trace_rate, trace_prob)
 

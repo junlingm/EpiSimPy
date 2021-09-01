@@ -44,9 +44,7 @@ class Population:
                 yield {"contact": person, "time": time}
 
     def p_test(self, period):
-        for person in self.agents:
-            time = random.random()*period
-            yield {"person": person, "time": time}
+        return np.random.exponential(period)
 
     def reset(self):
         for i in range(self.size):

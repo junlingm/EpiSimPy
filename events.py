@@ -28,5 +28,5 @@ class TestPosEvent:
 
 
 class PeriodicTestEvent:
-    def __init__(self):
-        pass
+    def __init__(self, person):
+        self.person = person
