@@ -5,13 +5,13 @@ from loggers import *
 import matplotlib.pyplot as plt
 import sys
 from math import inf
-import threading
+#import threading
 from averagers import *
 
 sys.setrecursionlimit(100000)
 #threading.stack_size(200000000)
 
-p = 1
+p = 0.5
 N_0 = 10000
 E_0 = 20  # everyone is either exposed or susceptible at t_0
 f = 0.25
@@ -84,8 +84,11 @@ SIR.define(ClassTotal("P", 0, "P"))
 SIR.define(ClassTotal("A", 0, "A"))
 SIR.define(ClassTotal("I", 0, "I"))
 SIR.define(ClassTotal("R", 0, "R"))
+SIR.define(Total("Eq", 0, "E", True))
+SIR.define(Total("Aq", 0, "A", True))
+SIR.define(Total("Pq", 0, "P", True))
 
-reps = 10
+reps = 20
 
 
 
@@ -95,30 +98,44 @@ sims_P = []
 sims_I = []
 sims_A = []
 sims_R = []
-print("new prob: ", 0)
-SIR.population.trace_prob = 0
+sims_Eq = []
+sims_Aq = []
+sims_Pq = []
 for _ in range(reps):
     print(_)
-    data = SIR.run(list(range(200)))
+    data = SIR.run(list(range(500)))
     sims_S.append(data["S"])
     sims_E.append(data["E"])
     sims_P.append(data["P"])
     sims_I.append(data["I"])
     sims_A.append(data["A"])
     sims_R.append(data["R"])
+    sims_Eq.append(data["Eq"])
+    sims_Aq.append(data["Aq"])
+    sims_Pq.append(data["Pq"])
 print(data["time"])
+print(sims_Aq)
 sims_S = averager(sims_S)
 sims_E = averager(sims_E)
-print("max E", max(sims_E)/N_0)
+#print("max E", max(sims_E)/N_0)
 sims_P = averager(sims_P)
 sims_I = averager(sims_I)
 sims_A = averager(sims_A)
-print("max A", max(sims_A)/N_0)
+#print("max A", max(sims_A)/N_0)
 sims_R = averager(sims_R)
-
+sims_Eq = averager(sims_Eq)
+sims_Aq = averager(sims_Aq)
+sims_Pq = averager(sims_Pq)
 print(sims_S)
 print(sims_E)
 print(sims_P)
 print(sims_I)
 print(sims_A)
+
 print(sims_R)
+print("break")
+print(sims_Eq)
+print(sims_Aq)
+print(sims_Pq)
+plt.plot(range(500), sims_S)
+plt.show()

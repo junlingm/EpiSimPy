@@ -216,7 +216,7 @@ class Simulation:
                     self.events.insert(TestPosEvent(pers, None), self.time)
                 elif not pers.was_traced:
                     t = self.population.p_test(self.periodic_test_interval)
-                    self.events.insert(TestPosEvent(pers), self.time+t)
+                    self.events.insert(PeriodicTestEvent(pers), self.time+t)
 
         return data
 
