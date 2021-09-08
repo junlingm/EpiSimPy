@@ -15,3 +15,8 @@ class TraceEvent:
     def __init__(self, person, contact):
         self.person = person
         self.contact = contact
+
+
+class UpdateEvent:
+    def __init__(self, done=False):
+        self.end_sim = done

@@ -1,3 +1,4 @@
+import time
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from ODE_model import *
@@ -8,11 +9,12 @@ from loggers import *
 from networks import *
 from averagers import *
 
+start_time = time.time()
 
-N = 1000
-I_0 = 20
+N = 10000
+I_0 = 100
 beta = 0.02
-ER_p = 0.01
+ER_p = 0.001
 lambd = (N - 1) * ER_p
 gamma = 1 / 10
 dg = lambda x: math.exp(lambd * (x - 1)) * lambd
@@ -22,8 +24,8 @@ ddg = lambda x: math.exp(lambd * (x - 1)) * lambd ** 2
 def Miller(t, r):
     x, y, S = r
     fx = -beta * y
-    fy = -beta * y - gamma * y + beta * y * ddg(x) / dg(1)
-    fS = -beta * y * dg(x) * N
+    fy = -beta * y - gamma * y + beta * y * ddg(x) / dg(1) * (1-I_0/N)
+    fS = -beta * y * dg(x) * (N-I_0)
     return fx, fy, fS
 
 
@@ -49,7 +51,7 @@ quar_period = None
 SIR = Simulation(states, traced_states, population, quar_period)
 SIR.define(InfTrans(from_state="I", to_state="R",
                     waiting_time=lambda: np.random.exponential(1/gamma)))
-SIR.define(Contact(from_state="S", to_state="I", contact_state="I", contact_quar=False, chance=1))
+SIR.define(Contact(from_state="S", to_state="I", self_quar=False, contact_state="I", contact_quar=False, chance=1))
 SIR.define(ClassTotal("S", N - I_0, "S"))
 
 reps = 100
@@ -57,7 +59,7 @@ data_1 = []
 for _ in range(reps):
     sim = SIR.run(list(range(100)))
     data_1.append(sim["S"])
-    print(sim["S"][-1])
+    #print(sim["S"][-1])
 avg_1 = averager(data_1)
 
 for _ in range(len(avg_1), 100):
@@ -65,4 +67,6 @@ for _ in range(len(avg_1), 100):
 
 plt.plot(range(100), avg_1, color="red")
 plt.plot(range(100), avg_2, color="blue")
+print("time elapsed: ", time.time()-start_time)
 plt.show()
+

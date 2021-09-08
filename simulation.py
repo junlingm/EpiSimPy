@@ -13,6 +13,7 @@ class Simulation:
         self.infection_trans = {}
         self.contact_states = {}
         self.contact_trans = {}
+        self.test_trans = {}
         self.quar_period = quar_period
         self.loggers = []
 
@@ -28,11 +29,15 @@ class Simulation:
         if isinstance(obj, Transition):
             if isinstance(obj, Contact):
                 self.contact_states[obj.contact, obj.contact_quar] = True
-                self.contact_trans[obj.from_state, obj.contact, obj.contact_quar] = obj
+                self.contact_trans[obj.from_state, obj.self_quar, obj.contact, obj.contact_quar] = obj
                 # this assumes only one contact event between two specific states
 
             elif isinstance(obj, InfTrans):
                 self.infection_trans[obj.from_state] += [obj]
+
+            elif isinstance(obj, TestTrans):
+                self.test_trans[(obj.from_state,obj.from_quar)] = obj
+                # there should only be one test transition for each state
 
         elif isinstance(obj, Logger):
             self.loggers += [obj]
@@ -46,6 +51,8 @@ class Simulation:
             data[logger.name] = []
             logger.reset()
         self.population.reset()  # reset population
+        for time in times:
+            self.events.insert(UpdateEvent(), time)
 
         def new_events(agent):
             agent.duration = None
@@ -70,8 +77,19 @@ class Simulation:
                                                         contacter=agent), e['time'] + self.time)
                     except StopIteration:
                         break
+            if (agent.state, agent.quarantined) in self.test_trans:
 
-            if agent.state in self.traced_states:  # if the person joined a traced state
+                trans = self.test_trans[(agent.state, agent.quarantined)]
+                t = trans.waiting_time()
+                self.events.insert(SelfEvent(agent, trans), self.time + t)
+
+        def new_trace_events(agent):
+            if (agent.state, agent.quarantined) in self.traced_states:
+                agent.traced = True
+            if agent.traced and not agent.was_traced:
+                # if the person joined a traced state
+                # I will assume that the same person will not have their contacts traced twice
+                agent.was_traced = True
                 trc = self.population.trace(agent)
                 while True:
                     try:
@@ -83,17 +101,18 @@ class Simulation:
 
         for person in self.population.agents:
             new_events(person)
-        while bool(times) and self.events.root is not None:
+        while self.events.root is not None and self.time <= times[-1]:
 
             next_event = self.events.remove_smallest()
 
-            while bool(times) and next_event.value > times[0]:
+            if isinstance(next_event.event, UpdateEvent):
                 for logger in self.loggers:
                     data[logger.name].append(logger.value)
-                data["time"].append(times[0])
-                times.pop(0)
+                data["time"].append(next_event.value)
+                if next_event.event.end_sim:
+                    return data
 
-            if isinstance(next_event.event, SelfEvent):
+            elif isinstance(next_event.event, SelfEvent):
 
                 person = next_event.event.person
                 transition = next_event.event.transition
@@ -108,23 +127,39 @@ class Simulation:
                             logger.log(transition.from_state,
                                        transition.to_state, person.quarantined, person.quarantined)
                         new_events(person)
+                        new_trace_events(person)
 
                 elif isinstance(transition, QuarTrans):
-
+                    # does quarantine end regardless of a new test?
                     person.quarantined = False
                     self.time = next_event.value
 
                     for logger in self.loggers:
                         logger.log(person.state, person.state, True, False)
 
+                    new_trace_events(person)
+
+                elif isinstance(transition, TestTrans):
+                    # this will not trace after recovery; it might be more general to assume otherwise
+                    # and change the distribution of test time accordingly
+
+                    # if there is a test delay a person might recover and test positive
+                    if transition.from_state == person.state:
+                        for logger in self.loggers:
+                            logger.log(person.state, person.state, person.quarantined, transition.to_quar)
+                        person.quarantined = transition.to_quar
+                        new_trace_events(person)
+
             elif isinstance(next_event.event, ContactEvent):
                 person = next_event.event.person
                 contacter = next_event.event.contacter
-                if (person.state, contacter.state, contacter.quarantined) in self.contact_trans:
-                    transition = self.contact_trans[person.state, contacter.state, contacter.quarantined]
+                if (person.state, person.quarantined, contacter.state, contacter.quarantined) in self.contact_trans:
+                    transition = self.contact_trans[person.state, person.quarantined, contacter.state, contacter.quarantined]
                     if person.number not in contacter.last_contacts:
                         contacter.last_contacts.append(person.number)
                     if transition.valid():
+                        # no longer assumes susceptible quarantined people not infected
+
                         # this comes before the state is changed
                         for logger in self.loggers:
                             logger.log(person.state, transition.to_state, person.quarantined, person.quarantined)
@@ -133,6 +168,7 @@ class Simulation:
                         self.time = next_event.value  # this needs to come before new_events()
 
                         new_events(person)
+                        new_trace_events(person)
 
             elif isinstance(next_event.event, TraceEvent):
                 person = next_event.event.person
@@ -147,6 +183,9 @@ class Simulation:
                         self.time = next_event.value
                         self.events.insert(SelfEvent(person, QuarTrans(None, True, False)),
                                            self.time + self.quar_period)
+
+                        new_trace_events(person)
+
         return data
 
     def reset(self):
