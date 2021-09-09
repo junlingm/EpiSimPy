@@ -56,4 +56,3 @@ class DegreeDistribution(Network):
                     self.network[b].append(a)
             except ValueError:  # less than two edges remaining
                 break
-

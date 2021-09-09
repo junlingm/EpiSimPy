@@ -2,18 +2,19 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
+from networks import *
 
-
-def gen(i, s):
+def gen(i):
     if i < 20:
-        return Agent("I", number=i, size=s)
-    return Agent("S", number=i, size=s)
+        return Agent_network("I", number=i)
+    return Agent_network("S", number=i)
 
 
 global_contact_rate = 5
 trace_prob = 1
 trace_rate = None
-population = Population(1000, gen, global_contact_rate, trace_rate, trace_prob)
+network = ER(1000, 0.01)
+population = Population_network(1000, gen, network.network, contact_rate=0.2, trace_rate=inf, trace_prob=0.9)
 
 states = ["S", "I", "R"]
 traced_states = []

@@ -2,31 +2,30 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
-from networks import *
 import matplotlib.pyplot as plt
+import sys
 
+sys.setrecursionlimit(10000)
 
-def gen(i):
+def gen(i, s):
     if i < 20:
-        return Agent("E", number=i)
-    return Agent("S", number=i)
+        return Agent("E", number=i, size=s)
+    return Agent("S", number=i, size=s)
 
 
-# network = DegreeDistribution(100, lambda: random.randint(1, 20))
-network = ER(10000, 0.001)
-
-per_edge_contact_rate = 0.2
+global_contact_rate = 2
 trace_rate = 2
-population = Population(10000, gen, network.network, per_edge_contact_rate, trace_rate)
+trace_prob = 1
+population = Population(10000, gen, global_contact_rate, trace_rate, trace_prob)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
-# state = "I", quarantine = True
-# these are states that are automatically traced
+pos_test = ["P", "I", "A"]
 
 quar_period = 14
 
-SIR = Simulation(states, traced_states, population, quar_period)
+SIR = Simulation(states, traced_states, population, quar_period, pos_test,
+                 quar_test_time=None, periodic_test_interval=14)
 
 SIR.define(InfTrans(from_state="E", to_state="A",
                     waiting_time=lambda: np.random.exponential(3)))
@@ -44,11 +43,11 @@ SIR.define(TestTrans(from_state="I", from_quar=False, to_quar=True,
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=False, chance=0.1))
 # SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="E", contact_quar=True, chance=0.01))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="A", contact_quar=False, chance=0.25))
-# SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="A", contact_quar=True, chance=0.02))
+#SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="A", contact_quar=True, chance=0.025))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="P", contact_quar=False, chance=0.4))
-# SIR.define(Contact(from_state="S", to_state="E",self_quar=False, contact_state="P", contact_quar=True, chance=0.06))
+#SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="P", contact_quar=True, chance=0.04))
 SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=False, chance=0.3))
-# SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.1))
+#SIR.define(Contact(from_state="S", to_state="E", self_quar=False, contact_state="I", contact_quar=True, chance=0.03))
 
 SIR.define(ClassTotal("S", 9980, "S"))
 SIR.define(Total("Eu", 20, "E", False))  # E unquarantined
@@ -65,6 +64,5 @@ print("E quarantined: ", data["Eq"])
 print("I unquarantined: ", data["Iu"])
 print("I quarantined: ", data["Iq"])
 print("final susceptible count:", data["S"][-1])
-# plt.plot(data["time"], data["S"], color="red")
-#plt.plot(data["time"], data["S"], color="blue")
-#plt.show()
+plt.plot(data["time"], data["S"], color="blue")
+plt.show()

@@ -1,8 +1,7 @@
-
 class ContactEvent:
     def __init__(self, person, contacter):
         self.contacter = contacter
-        self.person = person 
+        self.person = person
 
 
 class SelfEvent:
@@ -20,3 +19,14 @@ class TraceEvent:
 class UpdateEvent:
     def __init__(self, done=False):
         self.end_sim = done
+
+
+class TestPosEvent:
+    def __init__(self, person, transition=None):
+        self.person = person
+        self.transition = transition
+
+
+class PeriodicTestEvent:
+    def __init__(self, person):
+        self.person = person

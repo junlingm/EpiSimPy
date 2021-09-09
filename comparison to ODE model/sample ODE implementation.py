@@ -2,15 +2,12 @@ from simulation import *
 from population import *
 from transitions import *
 from loggers import *
+from networks import *
 import matplotlib.pyplot as plt
 import sys
-from math import inf
-import threading
 
-sys.setrecursionlimit(100000)
-#threading.stack_size(200000000)
+sys.setrecursionlimit(5000)
 
-p = 1
 N_0 = 10000
 E_0 = 20  # everyone is either exposed or susceptible at t_0
 f = 0.25
@@ -26,9 +23,8 @@ beta_I = 0.5
 tau_I = 0.3  # rate at which an infected person gets tested
 # theta_I, theta_A, theta_P = ?
 
-
 quar_period = 14
-periodic_test_interval = None
+periodic_test_interval = 14
 quar_test_time = None
 
 
@@ -38,9 +34,9 @@ def gen(i, s):
     return Agent("S", number=i, size=s)
 
 
-global_contact_rate = 1
-trace_rate = inf
-population = Population(N_0, gen, global_contact_rate, trace_rate, trace_prob=p)
+global_contact_rate = 2
+trace_rate = 0.2
+population = Population(N_0, gen, global_contact_rate, trace_rate)
 
 states = ["S", "E", "P", "I", "A", "R"]
 traced_states = [("I", True)]
@@ -79,59 +75,15 @@ SIR.define(Total("Eq", 0, "E", True))  # E quarantined
 SIR.define(Total("Iq", 0, "I", True))
 SIR.define(Total("Iu", 0, "I", False))
 SIR.define(ClassTotal("T", 0, "T"))
+data = SIR.run(list(range(200)))
 
-reps = 20
-
-#trace_rates = [0.00001, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5]
-trace_probs = np.linspace(0,1,21)
-#avgs = []
-#SIR.periodic_test_interval = None
-#for prob in trace_probs:
- #   final_S = []
-  #  print("new prob: ", prob)
-  #  for _ in range(reps):
-  #      print(_)
-  #      SIR.population.trace_prob = prob
-  #      data = SIR.run(list(range(200)))
-  #      final_S.append((N_0-data["S"][-1])/N_0)
- #   avgs.append(sum(final_S)/reps)
-
-#print(avgs)
-#plt.plot([0, 0.05, 0.1, 0.15, 0.2, 0.35, 0.5, 1, 2, 5], avgs)
-#plt.plot(np.linspace(0,1,21), avgs, color="red")
-
-#avgs = []
-#SIR.periodic_test_interval = 7
-#for prob in trace_probs:
-   # final_S = []
-   # print("new prob: ", prob)
-   # for _ in range(reps):
-    #    print(_)
-    #    SIR.population.trace_prob = prob
-    #    data = SIR.run(list(range(200)))
-     #   final_S.append((N_0-data["S"][-1])/N_0)
-    #avgs.append(sum(final_S)/reps)
-#plt.plot(np.linspace(0,1,21), avgs, color="blue")
-#print(avgs)
-
-avgs = []
-SIR.periodic_test_interval = 14
-for prob in trace_probs:
-    final_S = []
-    print("new prob: ", prob)
-    for _ in range(reps):
-        print(_)
-        SIR.population.trace_prob = prob
-        data = SIR.run(list(range(200)))
-        final_S.append((N_0-data["S"][-1])/N_0)
-    avgs.append(sum(final_S)/reps)
-plt.plot(np.linspace(0,1,21), avgs, color="green")
-print(avgs)
-
-plt.xlabel("p")
-plt.ylabel("final epidemic size")
-plt.title("red = no periodic testing, blue = every 7 days, green = every 14 days")
-plt.show()
-
-
-
+print("time: ", data["time"])
+print("S: ", data["S"])
+print("E unquarantined: ", data["Eu"])
+print("E quarantined: ", data["Eq"])
+print("I unquarantined: ", data["Iu"])
+print("I quarantined: ", data["Iq"])
+print("final susceptible count:", data["S"][-1])
+# plt.plot(data["time"], data["S"], color="red")
+# plt.plot(data["time"], data["S"], color="blue")
+# plt.show()
