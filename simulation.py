@@ -67,9 +67,10 @@ class Simulation(Population):
         return values
 
     def set_state(self, current_time, agent, state):
-        for logger in self.loggers:
-            logger.log(current_time, agent, state)
+        from_state = State(agent.state)
         agent.state.set(state)
+        for logger in self.loggers:
+            logger.log(current_time, agent, from_state)
         for rule in self._transitions:
             if rule.from_state.match(agent):
                 rule.schedule(current_time, agent)

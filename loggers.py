@@ -22,12 +22,12 @@ class Logger:
         else:
             self.to_state = State(to_state)
 
-    def log(self, time, agent, from_state, to_state):
+    def log(self, time, agent, from_state):
         """
         the agent's state has changed from from_state to to_state. Log this event if it matches.
         :param time: the time that the state changed
         :param agent: the agent
-        :param to_state: the agent's next state
+        :param from_state: the agent's original state
         """
         pass
 
@@ -50,16 +50,11 @@ class Counter(Logger):
         self.name = name
         self.count = initial
 
-    def log(self, time, agent, from_state, to_state):
+    def log(self, time, agent, from_state):
         if self.to_state is None:
-#            p = None in agent.state
-#            if p:
-#                print(time, "-:", self.from_state[None], to_state, "@", agent.id, agent.state, "=", self.count)
             if self.from_state.match(from_state):
                 self.count -= 1
-            if self.from_state.match(to_state):
+            if self.from_state.match(agent):
                 self.count += 1
-#            if p:
-#                print(self.count)
         elif self.from_state.match(agent) and self.to_state.match(to_state):
             self.count += 1
