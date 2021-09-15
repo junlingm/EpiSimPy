@@ -8,25 +8,27 @@ from averagers import Averager
 wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
 immediately = lambda _: 0
 
-N = 10000
-beta_A = 0.3
-beta_P = 0.5
-beta_I = 0.7
-delta = 0.2
-sigma = 0.3
-gamma_I = 0.11
+N = 1000
+E0 = 20  # everyone is either exposed or susceptible at t_0
+
+p = 0
+f = 0.25
+delta = 0.27
 gamma_A = 0.1
-f = 0.2
-
+gamma_I = 0.1177
+sigma = 0.662
+epsilon = 0  # need to define more transitions to change this
+beta_A = 0.3
+beta_P = 0.7
+beta_I = 0.5
+tau_I = 0.3  # rate at which an infected person gets tested
 tau = 1 / 14
-tau_I = 1 / 2
-
-I0 = 10
-p = 1
 
 def transmissible(time, sim, agent, to_state):
-    v = random.random_sample()
-    return v < agent[0].state["infectivity"] * agent[1].state["susceptibility"]
+    T = random.random_sample() < agent[0].state["infectivity"] * agent[1].state["susceptibility"]
+    if T:
+        print(time, agent[0].id, agent[0].state[None], agent[0].state["infectivity"], "->", agent[1].id, agent[1].state[None], agent[1].state["susceptibility"])
+    return T
 
 
 def transmitted(time, sim, agent, from_state):
@@ -34,12 +36,13 @@ def transmitted(time, sim, agent, from_state):
     if agent[1] not in l:
         l.append(agent[1])
 
-
 def trace(time, sim, agent, from_state):
     for c in agent.state["transmitted"]:
+        s = c.state[None]
         if random.random_sample() < p:
-            sim.set_state(time, c, {"quarantined": True, "infectivity": 0, "susceptibility": 0})
-
+            if s == "S" or s == "T":
+                continue
+            sim.set_state(time, c, {"quarantined": True})
 
 def run(times):
     sim = Simulation("contact_tracing", N)
@@ -50,11 +53,16 @@ def run(times):
                        waiting_time=wait_exp((1 - f) * delta)))
     sim.set(Transition(from_state=State("A"), to_state=State("R") & {"infectivity": 0},
                        waiting_time=wait_exp(gamma_A)))
-    sim.set(Transition(from_state=State("P"), to_state=State("I") & {"infectivity": beta_I},
+    sim.set(Transition(from_state=State("P") & {"quarantined": False},
+                       to_state=State("I") & {"infectivity": beta_I},
                        waiting_time=wait_exp(sigma)))
+    sim.set(Transition(from_state=State("P") & {"quarantined": True},
+                       to_state=State("T") & {"infectivity": 0},
+                       waiting_time=wait_exp(sigma),
+                       changed_callback=trace))
     sim.set(Transition(from_state=State("I"), to_state=State("R") & {"infectivity": 0},
                        waiting_time=wait_exp(gamma_I)))
-    # transmission
+
     sim.set(Transition(from_state=State("I") + State("S"),
                        to_state=State("I") + (State("E") & {"susceptibility": 0}),
                        to_change_callback=transmissible,
@@ -68,32 +76,42 @@ def run(times):
                        to_change_callback=transmissible,
                        changed_callback=transmitted))
     # testing
-    sim.set(Transition(from_state=State("I") & {"positive": False},
-                       to_state=State("I") & {"positive": True},
+    sim.set(Transition(from_state=State("I"), to_state=State("T") & {"infectivity": 0},
                        waiting_time=wait_exp(tau_I + tau),
                        changed_callback=trace))
-    sim.set(Transition(from_state=State("A") & {"positive": False},
-                       to_state=State("A") & {"positive": True},
+    sim.set(Transition(from_state=State("A"), to_state=State("T") & {"infectivity": 0},
                        waiting_time=wait_exp(tau),
                        changed_callback=trace))
-    sim.set(Transition(from_state=State("P") & {"positive": False},
-                       to_state=State("P") & {"positive": True},
+    sim.set(Transition(from_state=State("P"), to_state=State("T") & {"infectivity": 0},
                        waiting_time=wait_exp(tau),
                        changed_callback=trace))
+
+    sim.set(Transition(from_state=State("A") & {"quarantined": True},
+                       to_state=State("T") & {"infectivity": 0},
+                       waiting_time=immediately))
+
+    sim.set(Transition(from_state=State("P") & {"quarantined": True},
+                       to_state=State("T") & {"infectivity": 0},
+                       waiting_time=immediately))
+
+    sim.set(Transition(from_state=State("I") & {"quarantined": True},
+                       to_state=State("T") & {"infectivity": 0},
+                       waiting_time=immediately))
 
     sim.set(Counter(name="S", state=State("S")))
     sim.set(Counter(name="E", state=State("E")))
     sim.set(Counter(name="A", state=State("A")))
     sim.set(Counter(name="P", state=State("P")))
     sim.set(Counter(name="I", state=State("I")))
-    sim.set(Counter(name="T", state=State({"positive":True})))
+    sim.set(Counter(name="T", state=State("T")))
+    sim.set(Counter(name="R", state=State("R")))
 
     sim.set(RandomMixing(sim, 1))
     sim.set(InitFunction(lambda time, agent: State({"quarantined": False,
-                                                    "positive": False,
+                                                    "infectivity": 0,
                                                     "transmitted": []}) &
-                                             ((State("I") & {"susceptibility": 0, "infectivity": 1}) if
-    agent.id < I0 else State("S") & {"susceptibility": 1, "infectivity": 0})))
+                                             ((State("E") & {"susceptibility": 0}) if
+                                              agent.id < E0 else (State("S") & {"susceptibility": 1}))))
 
     return sim.run(times)
 
@@ -105,7 +123,8 @@ A = Averager()
 P = Averager()
 I = Averager()
 T = Averager()
-for i in range(10):
+R = Averager()
+for i in range(1):
     print("run", i)
     v = run(range(150))
     S += v["S"]
@@ -114,10 +133,11 @@ for i in range(10):
     P += v["P"]
     I += v["I"]
     T += v["T"]
+    R += v["R"]
 t = v["times"]
 
 end_time = time()
 for i in range(len(v["times"])):
-    print(t[i], S[i], E[i], A[i], P[i], I[i], T[i])
+    print(t[i], S[i], E[i], A[i], P[i], I[i], T[i], R[i])
 
 print("--- %s seconds ---" % (end_time - start_time))
