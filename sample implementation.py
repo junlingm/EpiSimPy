@@ -8,10 +8,10 @@ from averagers import Averager
 wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
 immediately = lambda _: 0
 
-N = 1000
+N = 10000
 E0 = 20  # everyone is either exposed or susceptible at t_0
 
-p = 0
+p = 0.7
 f = 0.25
 delta = 0.27
 gamma_A = 0.1
@@ -25,10 +25,7 @@ tau_I = 0.3  # rate at which an infected person gets tested
 tau = 1 / 14
 
 def transmissible(time, sim, agent, to_state):
-    T = random.random_sample() < agent[0].state["infectivity"] * agent[1].state["susceptibility"]
-    if T:
-        print(time, agent[0].id, agent[0].state[None], agent[0].state["infectivity"], "->", agent[1].id, agent[1].state[None], agent[1].state["susceptibility"])
-    return T
+    return random.random_sample() < agent[0].state["infectivity"] * agent[1].state["susceptibility"]
 
 
 def transmitted(time, sim, agent, from_state):
@@ -124,7 +121,7 @@ P = Averager()
 I = Averager()
 T = Averager()
 R = Averager()
-for i in range(1):
+for i in range(100):
     print("run", i)
     v = run(range(150))
     S += v["S"]
@@ -137,7 +134,13 @@ for i in range(1):
 t = v["times"]
 
 end_time = time()
-for i in range(len(v["times"])):
-    print(t[i], S[i], E[i], A[i], P[i], I[i], T[i], R[i])
+import csv
 
+with open("sim.p.%1.1f.csv" % p, 'w') as csvfile:
+    w = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+    w.writerow(['t', "S", "E", "A", "P", "I", "T", "R"])
+    print('t', "S", "E", "A", "P", "I", "T", "R")
+    for i in range(len(v["times"])):
+        w.writerow([t[i], S[i], E[i], A[i], P[i], I[i], T[i], R[i]])
+        print(t[i], S[i], E[i], A[i], P[i], I[i], T[i], R[i])
 print("--- %s seconds ---" % (end_time - start_time))
