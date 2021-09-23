@@ -72,5 +72,5 @@ class Simulation(Population):
         for logger in self.loggers:
             logger.log(current_time, agent, from_state)
         for rule in self._transitions:
-            if rule.from_state.match(agent):
+            if (not rule.from_state.match(from_state)) and rule.from_state.match(agent):
                 rule.schedule(current_time, agent)
