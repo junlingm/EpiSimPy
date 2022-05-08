@@ -1,22 +1,12 @@
 from simulation import *
 from population import *
 from transitions import *
-<<<<<<< HEAD
-from loggers import *
-
-
-def gen(i, s):
-    if i < 20:
-        return Agent("I", number=i, size=s)
-    return Agent("S", number=i, size=s)
-=======
 from numpy import random
 from time import time
 from averagers import Averager
 
 
 wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
->>>>>>> state-groups
 
 N=5000000
 p = 0.3
@@ -26,17 +16,6 @@ tau = 0.15
 I0 = 20
 theta = 10
 
-<<<<<<< HEAD
-global_contact_rate = 5
-trace_prob = 1
-trace_rate = None
-population = Population(1000, gen, global_contact_rate, trace_rate, trace_prob)
-
-states = ["S", "I", "R"]
-traced_states = []
-quar_period = None
-SIR = Simulation(states, traced_states, population, quar_period, ["I"], None, None)
-=======
 runs = 100
 save = True
 
@@ -52,7 +31,6 @@ def trace(time, sim, agent, from_state):
     for c in l:
         if c.state[None] == "I" and random.random_sample() < p:
             sim.set_state(time, c, State("T"))
->>>>>>> state-groups
 
 init = lambda time, agent: State({"transmitted": []}) & State("I" if agent.id < I0 else "S")
 
@@ -77,12 +55,6 @@ def run(times):
     sim.set(Counter(name="X", state=State("X")))
     sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
-
-<<<<<<< HEAD
-SIR.define(Contact(from_state="S", to_state="I", self_quar=False, contact_state="I", contact_quar=False, chance=1))
-=======
-    return sim.run(times)
->>>>>>> state-groups
 
 start_time = time()
 S = Averager()
