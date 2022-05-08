@@ -1,10 +1,10 @@
-from binarySearchTree import *
-from transitions import *
+from events import Event
+from population import Population
 from loggers import *
-from events import *
-from math import inf
+from transitions import Transition
 
 
+<<<<<<< HEAD
 class Simulation:
     def __init__(self, states, traced_states, population, quar_period, pos_test,
                  quar_test_time=None, periodic_test_interval=None):
@@ -20,25 +20,31 @@ class Simulation:
         self.pos_test = pos_test
         self.periodic_test_interval = periodic_test_interval
         self.quar_test_time = quar_test_time
+=======
+class Initializer:
+    def initial(self, time, agent):
+        return None
+>>>>>>> state-groups
 
-        for state in self.states:
-            self.infection_trans[state] = []
 
-        # current time
-        self.time = None
-        # the events organized in the binary search tree
-        self.events = BinarySearchTree()
+class InitFunction(Initializer):
+    def __init__(self, func):
+        self.func = func
 
+<<<<<<< HEAD
     def define(self, obj):
         if isinstance(obj, Transition):
             if isinstance(obj, Contact):
                 self.contact_states[obj.contact, obj.contact_quar] = True
                 self.contact_trans[obj.from_state, obj.self_quar, obj.contact, obj.contact_quar] = obj
                 # this assumes only one contact event between two specific states
+=======
+    def initial(self, time, agent):
+        return self.func(time, agent)
+>>>>>>> state-groups
 
-            elif isinstance(obj, InfTrans):
-                self.infection_trans[obj.from_state] += [obj]
 
+<<<<<<< HEAD
             elif isinstance(obj, TestTrans):
                 self.test_trans[(obj.from_state, obj.from_quar)] = obj
                 # there should only be one test transition for each state
@@ -156,8 +162,52 @@ class Simulation:
                     # does quarantine end regardless of a new test?
                     person.quarantined = False
                     self.time = next_event.value
+=======
+class Simulation(Population):
+    def __init__(self, name, size, generator=None):
+        super().__init__(name, size, generator)
+        self.loggers = list()
+        self._transitions = list()
+        self.initializers = list()
 
+    def set(self, rule):
+        if isinstance(rule, Logger):
+            self.loggers.append(rule)
+            return
+
+        if isinstance(rule, Transition):
+            self._transitions.append(rule)
+            return
+
+        if isinstance(rule, Initializer):
+            self.initializers.append(rule)
+
+        super().set(rule)
+>>>>>>> state-groups
+
+    def run(self, times):
+        values = {"times": [t for t in times]}
+        n = len(times)
+        for logger in self.loggers:
+            if isinstance(logger, Counter):
+                values[logger.name] = [0] * n
+
+        t = times[0]
+        for agent in self:
+            for i in self.initializers:
+                v = i.initial(t, agent)
+                if isinstance(v, State):
+                    self.set_state(t, agent, v)
+                elif isinstance(v, Event):
+                    agent.schedule(v)
+
+        for i in range(n):
+            log_time = times[i]
+            while True:
+                if self.time > log_time:
+                    # log ...
                     for logger in self.loggers:
+<<<<<<< HEAD
                         logger.log(person.state, person.state, True, False)
 
                     new_trace_events(person)
@@ -222,3 +272,19 @@ class Simulation:
 
     def reset(self):
         pass  # currently this is implemented at the top of the run() method
+=======
+                        if isinstance(logger, Counter):
+                            values[logger.name][i] = logger.count
+                    break
+                self.handle(self)
+        return values
+
+    def set_state(self, current_time, agent, state):
+        from_state = State(agent.state)
+        agent.state.set(state)
+        for logger in self.loggers:
+            logger.log(current_time, agent, from_state)
+        for rule in self._transitions:
+            if (not rule.from_state.match(from_state)) and rule.from_state.match(agent):
+                rule.schedule(current_time, agent)
+>>>>>>> state-groups
