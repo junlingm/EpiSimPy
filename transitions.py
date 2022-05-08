@@ -57,17 +57,6 @@ class ContactEvent(Event):
                     self.rule.changed(self.time, sim, (self.owner, self.contact), self.rule.from_state)
         self.rule.schedule(self.time, self.owner)
 
-<<<<<<< HEAD
-class Contact(Transition):
-    def __init__(self, from_state, to_state, self_quar, contact_state, contact_quar, chance):
-        super().__init__(from_state, to_state, None)
-        # this has to come after
-        self.contact = contact_state
-        self.contact_quar = contact_quar
-        self.self_quar = self_quar
-=======
->>>>>>> state-groups
-
 class Transition:
     def __init__(self, from_state, to_state, waiting_time=None, to_change_callback=None, changed_callback=None):
         """
@@ -119,22 +108,3 @@ class Transition:
                     contact = c
             if time is not inf:
                 agent.schedule(ContactEvent(time + current_time, contact, self))
-
-
-<<<<<<< HEAD
-class QuarTrans(Transition):
-    def __init__(self, from_state, from_quar, to_quar):
-        super().__init__(from_state, from_state, None)
-        self.from_quar = from_quar
-        self.to_quar = to_quar
-
-
-class TestTrans(Transition):
-    # it is assumed that an agent becomes traced if they undergo this transition
-    def __init__(self, from_state, from_quar, to_quar, waiting_time):
-        super().__init__(from_state, from_state, waiting_time)
-        self.from_quar = from_quar
-        self.to_quar = to_quar
-
-=======
->>>>>>> state-groups
