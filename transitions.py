@@ -46,8 +46,9 @@ class ContactEvent(Event):
 
     def handle(self, sim):
         if self.rule.from_state[0].match(self.owner) and self.rule.from_state[1].match(self.contact):
-            yes = self.rule.to_change(self.time, sim, (self.owner, self.contact), self.rule.to_state)
-            if self.rule.to_change is not None and yes:
+            yes = True if self.rule.to_change is None else \
+                self.rule.to_change(self.time, sim, (self.owner, self.contact), self.rule.to_state)
+            if yes:
                 if not self.rule.to_state[1].match(self.contact):
                     sim.set_state(self.time, self.contact, self.rule.to_state[1])
                 if not self.rule.to_state[0].match(self.owner):
