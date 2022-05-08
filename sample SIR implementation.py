@@ -56,6 +56,9 @@ def run(times):
     sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
 
+    return sim.run(times)
+
+
 start_time = time()
 S = Averager()
 I = Averager()
