@@ -9,7 +9,7 @@ from averagers import Averager
 wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
 
 N=5000000
-p = 0.3
+p = 0.2
 beta = 0.4
 gamma = 0.1
 tau = 0.15
@@ -78,14 +78,36 @@ t = v["times"]
 
 end_time = time()
 
+Sm = S.mean()
+Im = I.mean()
+Tm = T.mean()
+Xm = X.mean()
+Rm = R.mean()
+
+print('t', "S", "I", "T", "X", "R", "curve")
+for i in range(len(t)):
+    print(t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i])
+
 if save:
     import csv
     with open("SIR.p.{p:.1f}.csv".format(p=p), 'w') as csvfile:
         w = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
-        w.writerow(['t', "S", "I", "T", "X", "R"])
-        print('t', "S", "I", "T", "X", "R")
+        w.writerow(['t', "S", "I", "T", "X", "R", "curve"])
         for i in range(len(v["times"])):
-            w.writerow([t[i], S[i], I[i], T[i], X[i], R[i]])
-            print(t[i], S[i], I[i], T[i], X[i], R[i])
+            w.writerow([t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i], "mean"])
+        Sm = S.quantile(0.025)
+        Im = I.quantile(0.025)
+        Tm = T.quantile(0.025)
+        Xm = X.quantile(0.025)
+        Rm = R.quantile(0.025)
+        for i in range(len(v["times"])):
+            w.writerow([t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i], "2.5% quantile"])
+        Sm = S.quantile(0.975)
+        Im = I.quantile(0.975)
+        Tm = T.quantile(0.975)
+        Xm = X.quantile(0.975)
+        Rm = R.quantile(0.975)
+        for i in range(len(v["times"])):
+            w.writerow([t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i], "97.5% quantile"])
 
 print("--- %s seconds ---" % (end_time - start_time))
