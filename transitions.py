@@ -57,6 +57,7 @@ class ContactEvent(Event):
                     self.rule.changed(self.time, sim, (self.owner, self.contact), self.rule.from_state)
         self.rule.schedule(self.time, self.owner)
 
+
 class Transition:
     def __init__(self, from_state, to_state, waiting_time=None, to_change_callback=None, changed_callback=None):
         """
