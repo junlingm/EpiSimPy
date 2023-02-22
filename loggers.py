@@ -56,5 +56,5 @@ class Counter(Logger):
                 self.count -= 1
             if self.from_state.match(agent):
                 self.count += 1
-        elif self.from_state.match(agent) and self.to_state.match(self.to_state):
+        elif self.from_state.match(from_state) and self.to_state.match(agent):
             self.count += 1
