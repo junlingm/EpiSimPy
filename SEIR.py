@@ -4,7 +4,7 @@ from transitions import *
 from numpy import random
 
 
-wait_gamma = lambda rate: lambda _: random.exponential(1 / rate)
+wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
 
 N=5000000
 beta = 0.5
@@ -38,17 +38,20 @@ def init(time, agent):
 
 def run(times):
     sim = Simulation("test", N)
+    rm = RandomMixing(sim)
+    sim.set(rm)
     sim.set(Transition(State("E"), State("I"), latent))
     sim.set(Transition(State("I"), State("R"), infectious))
     sim.set(Transition(State("I") + State("S"),
                        State("I") + State("E"),
-                       to_change_callback=to_transmit))
+                       waiting_time=wait_exp(beta),
+                       to_change_callback=to_transmit,
+                       contact = rm))
 
     sim.set(Counter(name="S", state=State("S")))
     sim.set(Counter(name="E", state=State("E")))
     sim.set(Counter(name="I", state=State("I")))
     sim.set(Counter(name="R", state=State("R")))
-    sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
 
     return sim.run(times)

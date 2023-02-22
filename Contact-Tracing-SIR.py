@@ -17,7 +17,7 @@ I0 = 20
 theta = 10
 
 runs = 100
-save = True
+save = False
 
 def transmitted(time, sim, agent, from_state):
     l = agent[0].state["transmitted"]
@@ -36,10 +36,14 @@ init = lambda time, agent: State({"transmitted": []}) & State("I" if agent.id < 
 
 def run(times):
     sim = Simulation("test", N)
+    rm = RandomMixing(sim)
+    sim.set(rm)
     sim.set(Transition(State("I"), State("R"), wait_exp(gamma)))
     sim.set(Transition(State("I") + State("S"),
                        State("I") + State("I"),
-                       changed_callback=transmitted))
+                       waiting_time=wait_exp(beta),
+                       changed_callback=transmitted,
+                       contact=rm))
     sim.set(Transition(from_state=State("I"),
                        to_state=State("T"),
                        waiting_time=wait_exp(tau)))
@@ -53,7 +57,6 @@ def run(times):
     sim.set(Counter(name="R", state=State("R")))
     sim.set(Counter(name="T", state=State("T")))
     sim.set(Counter(name="X", state=State("X")))
-    sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
 
     return sim.run(times)

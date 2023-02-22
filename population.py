@@ -11,16 +11,15 @@ class Contacts:
 
 
 class RandomMixing(Contacts):
-    def __init__(self, population, per_capita_rate):
+    def __init__(self, population):
         super().__init__(population)
-        self.rng = lambda current_time: random.exponential(1/per_capita_rate)
 
     def contact(self, agent):
         n = self.population.size()
         i = random.randint(0, n-1)
         if i == agent.id:
             i += 1
-        return self.population[i], self.rng
+        return [self.population[i]]
 
 
 class AgentIterator:

@@ -42,12 +42,16 @@ init = lambda time, agent: State({"transmitted": []}) & State("I" if agent.id < 
 
 def run(times):
     sim = Simulation("test", N)
+    rm = RandomMixing(sim)
+    sim.set(rm)
     sim.set(Transition(State("Q"), State("T"), wait_exp(sigma)))
     sim.set(Transition(State("E"), State("I"), wait_exp(sigma)))
     sim.set(Transition(State("I"), State("R"), wait_exp(gamma)))
     sim.set(Transition(State("I") + State("S"),
                        State("I") + State("E"),
-                       changed_callback=transmitted))
+                       waiting_time=wait_exp(beta),
+                       changed_callback=transmitted,
+                       contact=rm))
     sim.set(Transition(from_state=State("I"),
                        to_state=State("T"),
                        waiting_time=wait_exp(tau)))
@@ -64,7 +68,6 @@ def run(times):
     sim.set(Counter(name="R", state=State("R")))
     sim.set(Counter(name="T", state=State("T")))
     sim.set(Counter(name="X", state=State("X")))
-    sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
 
     return sim.run(times)

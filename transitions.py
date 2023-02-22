@@ -57,9 +57,8 @@ class ContactEvent(Event):
                     self.rule.changed(self.time, sim, (self.owner, self.contact), self.rule.from_state)
         self.rule.schedule(self.time, self.owner)
 
-
 class Transition:
-    def __init__(self, from_state, to_state, waiting_time=None, to_change_callback=None, changed_callback=None):
+    def __init__(self, from_state, to_state, waiting_time, to_change_callback=None, changed_callback=None, contact = None):
         """
 
         :param from_state:
@@ -80,6 +79,7 @@ class Transition:
                 agent: an Agent whose state has changes, or a tuple of agents whose state has changed due
                     to contact.
                 from_state: the state(s) that the agent(s) changed from
+        :param contact: If this transition is caused by a contact, this points the contact object
         """
         if not isinstance(from_state, State) and not isinstance(from_state, States):
             self.from_state = State(from_state)
@@ -92,20 +92,15 @@ class Transition:
         self.waiting_time = waiting_time
         self.to_change = to_change_callback
         self.changed = changed_callback
+        self.contact = contact
 
     def schedule(self, current_time, agent):
-        if isinstance(self.from_state, State):
+        if self.contact is None:
             if self.from_state.match(agent):
                 time = self.waiting_time(current_time) + current_time
                 agent.schedule(TransitionEvent(time, self))
         elif self.from_state[0].match(agent):
-            contacts = agent.owner.contacts(agent)
-            time = inf
-            contact = None
-            for c, f in contacts:
-                t = f(current_time)
-                if t < time:
-                    time = t
-                    contact = c
-            if time is not inf:
-                agent.schedule(ContactEvent(time + current_time, contact, self))
+            for c in self.contact.contact(agent):
+                time = self.waiting_time(current_time) + current_time
+                if time is not inf:
+                    agent.schedule(ContactEvent(time, c, self))

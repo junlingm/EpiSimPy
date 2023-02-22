@@ -24,14 +24,16 @@ def init(time, agent):
 
 def run(times):
     sim = Simulation("test", N)
+    rm = RandomMixing(sim)
+    sim.set(rm)
     sim.set(Transition(State("I"), State("R"), wait_exp(gamma)))
     sim.set(Transition(State("I") + State("S"),
-                       State("I") + State("I")))
+                       State("I") + State("I"),
+                       wait_exp(beta), contact=rm))
 
     sim.set(Counter(name="S", state=State("S")))
     sim.set(Counter(name="I", state=State("I")))
     sim.set(Counter(name="R", state=State("R")))
-    sim.set(RandomMixing(sim, beta))
     sim.set(InitFunction(init))
 
     return sim.run(times)
