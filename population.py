@@ -6,7 +6,7 @@ class Contacts:
     def __init__(self, population):
         self.population = population
 
-    def contacts(self, agent):
+    def contact(self, agent):
         return list()
 
 
