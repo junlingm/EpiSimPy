@@ -7,6 +7,7 @@ from averagers import Averager
 
 
 wait_exp = lambda rate: lambda _: random.exponential(1 / rate)
+
 def wait_exp2(rate1, rate2, T):
     def waiting_time(time):
         if time > T:
@@ -17,11 +18,23 @@ def wait_exp2(rate1, rate2, T):
         return T - time + random.exponential(1 / rate2)
     return waiting_time
 
+def wait_exp3(rate1, rate2, rate3, T1, T2):
+    wt2 = wait_exp2(rate1, rate2, T1)
+    def waiting_time(time):
+        if time > T2:
+            return random.exponential(1 / rate3)
+        t = wt2(time)
+        if time + t < T2:
+            return t
+        return T2 - time + random.exponential(1 / rate3)
+    return waiting_time
+
 N=50000
 p = 0.2
 q = 0.3
 # Tc is the time of the control measure set to None for no control
-Tc  = 30
+Tc = 50
+Tc2 = 70
 beta_I = 0.6
 beta_A = 0.2
 sigma=0.27
@@ -30,16 +43,25 @@ gamma_A=0.2
 tau = 0.15
 I0 = 20
 theta = 2
-t1=79
+
 runs = 1
 save = True
 
-if Tc is not None:
+if Tc2 is not None and Tc is not None:
     eps = 0.5
     beta_I2 = beta_I * eps
     beta_A2 = beta_A * eps
-    wt_I = wait_exp2(beta_I, beta_I2, Tc)
-    wt_A = wait_exp2(beta_A, beta_A2, Tc)
+    eps2 = 0.75
+    beta_I3 = beta_I * eps2
+    beta_A3 = beta_A * eps2
+    wt_I = wait_exp3(beta_I, beta_I2, beta_I3, Tc, Tc2)
+    wt_A = wait_exp3(beta_A, beta_A2, beta_A3, Tc, Tc2)
+elif Tc is not None:
+    eps = 0.5
+    beta_I2 = beta_I * eps
+    beta_A2 = beta_A * eps
+    wt_I = wait_exp2(beta_I, beta_I2, beta_I3,Tc)
+    wt_A = wait_exp2(beta_A, beta_A2, beta_A3,Tc)
 else:
     wt_I = wait_exp(beta_I)
     wt_A = wait_exp(beta_A)
@@ -58,7 +80,7 @@ def trace(time, sim, agent, from_state):
     for c in l:
         if random.random_sample() < p:
             if c.state[None] == "I":
-                sim.set_state(time, c, State("T"))
+                sim.set_state(time, c, State("Tt"))
             elif c.state[None] == "E":
                 sim.set_state(time, c, State("Q"))
             elif c.state[None] == "A":
@@ -96,14 +118,15 @@ def run(times):
                        to_state=State("X"),
                        waiting_time=wait_exp(theta),
                        changed_callback=trace))
+    sim.set(Transition(from_state=State("Tt"),
+                       to_state=State("X"),
+                       waiting_time=wait_exp(theta),
+                       changed_callback=trace))
 
-    sim.set(Counter(name="infection", state=State("S"), to_state=State("E")))
-    sim.set(Counter(name="quarantine", state=State("E"), to_state=State("Q")))
-    sim.set(Counter(name="Asymptomatic_Quarantine", state=State("A"), to_state=State("QA")))
-    sim.set(Counter(name="S", state=State("S")))
+    sim.set(Counter(name="ITt", state=State("I"), to_state=State("Tt")))
+    sim.set(Counter(name="IT", state=State("I"), to_state=State("T")))
+    sim.set(Counter(name="QT", state=State("Q"), to_state=State("T")))
     sim.set(Counter(name="I", state=State("I")))
-    sim.set(Counter(name="R", state=State("R")))
-    sim.set(Counter(name="T", state=State("T")))
     sim.set(Counter(name="X", state=State("X")))
     sim.set(InitFunction(init))
 
@@ -111,43 +134,42 @@ def run(times):
 
 
 start_time = time()
-S = Averager()
+ITt = Averager()
+IT = Averager()
+QT = Averager()
 I = Averager()
-R = Averager()
-T = Averager()
 X = Averager()
 Quarantine = Averager()
 
 v = run(range(250))
-S += v["S"]
+ITt += v["ITt"]
+IT += v["IT"]
+QT += v["QT"]
 I += v["I"]
-R += v["R"]
-T += v["T"]
 X += v["X"]
-Quarantine += v["quarantine"]
+
 
 t = v["times"]
 
 end_time = time()
 
-Sm = S.mean()
+ITtm = ITt.mean()
+ITm = IT.mean()
+QTm = QT.mean()
 Im = I.mean()
-Tm = T.mean()
 Xm = X.mean()
-Rm = R.mean()
-Qm = Quarantine.mean()
 
-print('t', "S", "I", "T", "X", "R", "Q")
+print('t', "ITt", "IT", "QT", "I", "X")
 for i in range(len(t)):
-    print(t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i], Qm[i])
+    print(t[i], ITtm[i], ITm[i], QTm[i], Im[i], Xm[i])
 
 if save:
     import csv
     with open("SIR.p.{p:.1f}.csv".format(p=p), 'w') as csvfile:
         w = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
-        w.writerow(['t', "S", "I", "T", "X", "R", "Q"])
+        w.writerow(['t', "ITt", "IT", "QT", "I", "X"])
         for i in range(len(v["times"])):
-            w.writerow([t[i], Sm[i], Im[i], Tm[i], Xm[i], Rm[i], Qm[i]])
+            w.writerow([t[i], ITtm[i], ITm[i], QTm[i], Im[i], Xm[i]])
 
 
 print("--- %s seconds ---" % (end_time - start_time))
